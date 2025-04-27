@@ -1,0 +1,32 @@
+# Залежності
+node_modules/
+package-lock.json
+
+# Логи
+logs
+*.log
+npm-debug.log*
+
+# Змінні середовища
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Кеш
+.npm
+.eslintcache
+
+# Системні файли
+.DS_Store
+Thumbs.db
+
+# Директорії збірки
+/dist
+/build
+
+# Інше
+coverage/
+.vscode/
+.idea/

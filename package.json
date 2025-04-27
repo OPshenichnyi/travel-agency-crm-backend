@@ -1,0 +1,14 @@
+{
+  "name": "travel-agency-crm",
+  "version": "0.1.0",
+  "description": "Backend for CRM-system travel agency",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["crm", "travel-agency", "nodejs", "express"],
+  "author": "",
+  "license": "ISC"
+}
