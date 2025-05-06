@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "description": "Backend for CRM-system travel agency",
   "main": "src/app.js",
+  "type": "module",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
+    "reset-admin": "node reset-admin-password.js",
+    "reset-password": "node reset-user-password.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -30,6 +33,7 @@
     "pg": "^8.15.6",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
