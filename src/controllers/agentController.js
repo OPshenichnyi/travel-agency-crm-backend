@@ -42,7 +42,7 @@ const updateAgentController = async (req, res, next) => {
       phone: req.body.phone,
     };
 
-    const updatedAgent = await updateAgent(id, agentData);
+    const updatedAgent = await updateAgent(id, agentData, req.user.id);
 
     res.status(200).json({
       message: "Agent updated successfully",
@@ -64,7 +64,7 @@ const toggleAgentStatusController = async (req, res, next) => {
     const { id } = req.params;
     const { isActive } = req.body;
 
-    const agent = await toggleAgentStatus(id, isActive);
+    const agent = await toggleAgentStatus(id, isActive, req.user.id);
 
     res.status(200).json({
       message: `Agent ${isActive ? "activated" : "deactivated"} successfully`,

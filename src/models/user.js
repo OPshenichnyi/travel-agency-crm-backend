@@ -20,6 +20,14 @@ User.init(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    managerId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
     role: {
       type: DataTypes.STRING, // SQLite не підтримує ENUM
       allowNull: false,

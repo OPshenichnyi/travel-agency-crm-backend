@@ -5,6 +5,8 @@ import Invitation from "./invitation.js";
 // Define relationships between models
 Invitation.belongsTo(User, { foreignKey: "invitedBy", as: "inviter" });
 User.hasMany(Invitation, { foreignKey: "invitedBy", as: "invitations" });
+User.belongsTo(User, { foreignKey: "managerId", as: "manager" });
+User.hasMany(User, { foreignKey: "managerId", as: "agents" });
 
 // Sync models with database
 const syncModels = async () => {

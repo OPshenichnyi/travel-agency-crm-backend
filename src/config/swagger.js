@@ -90,6 +90,11 @@ const swaggerOptions = {
               type: "boolean",
               description: "Статус активності користувача",
             },
+            managerId: {
+              type: "string",
+              format: "uuid",
+              description: "ID менеджера (тільки для агентів)",
+            },
           },
         },
         Invitation: {

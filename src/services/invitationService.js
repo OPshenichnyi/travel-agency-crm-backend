@@ -16,7 +16,7 @@ import logger from "../utils/logger.js";
 const createInvitation = async (data) => {
   const { email, role, invitedBy } = data;
 
-  // Check if user with this email already exists
+  // Перевіряємо, чи користувач з цим email вже існує
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
     const error = new Error("User with this email already exists");
@@ -24,13 +24,13 @@ const createInvitation = async (data) => {
     throw error;
   }
 
-  // Check if active invitation for this email already exists
+  // Перевіряємо, чи активне запрошення для цього email вже існує
   const existingInvitation = await Invitation.findOne({
     where: {
       email,
       used: false,
       expiresAt: {
-        [Sequelize.Op.gt]: new Date(), // not expired
+        [Sequelize.Op.gt]: new Date(), // не прострочене
       },
     },
   });
@@ -42,7 +42,7 @@ const createInvitation = async (data) => {
   }
 
   try {
-    // Get inviter details for email
+    // Отримуємо дані запрошувача для email
     const inviter = await User.findByPk(invitedBy);
     if (!inviter) {
       const error = new Error("Inviter not found");
@@ -50,18 +50,18 @@ const createInvitation = async (data) => {
       throw error;
     }
 
-    // Create invitation
+    // Створюємо запрошення
     const invitation = await Invitation.create({
       id: uuidv4(),
       email,
       role,
       invitedBy,
       token: uuidv4(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 днів
       used: false,
     });
 
-    // Send invitation email
+    // Надсилаємо email з запрошенням
     try {
       const inviterName = inviter.firstName
         ? `${inviter.firstName} ${inviter.lastName || ""}`
@@ -71,7 +71,7 @@ const createInvitation = async (data) => {
       logger.info(`Invitation email sent to ${email} for role ${role}`);
     } catch (emailError) {
       logger.error(`Failed to send invitation email: ${emailError.message}`);
-      // We still create the invitation even if email fails
+      // Ми все одно створюємо запрошення, навіть якщо надсилання email не вдалося
     }
 
     return {

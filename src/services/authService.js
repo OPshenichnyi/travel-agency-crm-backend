@@ -63,7 +63,7 @@ const login = async (email, password) => {
  * @returns {Object} - User data and token
  */
 const register = async (token, userData) => {
-  // Find invitation by token
+  // Знаходимо запрошення за токеном
   const invitation = await Invitation.findOne({
     where: {
       token,
@@ -73,19 +73,19 @@ const register = async (token, userData) => {
       {
         model: User,
         as: "inviter",
-        attributes: ["id", "firstName", "lastName", "email"],
+        attributes: ["id", "firstName", "lastName", "email", "role"],
       },
     ],
   });
 
-  // Check if invitation exists and is valid
+  // Перевіряємо, чи існує запрошення і чи воно валідне
   if (!invitation) {
     const error = new Error("Invalid or expired invitation token");
     error.status = 400;
     throw error;
   }
 
-  // Check if invitation has expired
+  // Перевіряємо, чи запрошення не прострочене
   if (new Date() > invitation.expiresAt) {
     const error = new Error("Invitation has expired");
     error.status = 400;
@@ -93,7 +93,17 @@ const register = async (token, userData) => {
   }
 
   try {
-    // Create user
+    // Визначаємо managerId для агентів
+    let managerId = null;
+    if (invitation.role === "agent" && invitation.inviter) {
+      // Якщо запрошувач - менеджер, його ID стає managerId
+      if (invitation.inviter.role === "manager") {
+        managerId = invitation.inviter.id;
+      }
+      // Якщо запрошувач - адмін, залишаємо managerId як null (або ви можете вибрати інший підхід)
+    }
+
+    // Створюємо користувача
     const user = await User.create({
       email: invitation.email,
       role: invitation.role,
@@ -101,16 +111,17 @@ const register = async (token, userData) => {
       firstName: userData.firstName,
       lastName: userData.lastName,
       phone: userData.phone,
+      managerId: managerId,
     });
 
-    // Mark invitation as used
+    // Позначаємо запрошення як використане
     invitation.used = true;
     await invitation.save();
 
-    // Generate JWT token
+    // Генеруємо JWT токен
     const token = generateToken(user);
 
-    // Return user data and token
+    // Повертаємо дані користувача та токен
     return {
       user: {
         id: user.id,
@@ -118,6 +129,7 @@ const register = async (token, userData) => {
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,
+        managerId: user.managerId,
       },
       token,
     };

@@ -15,11 +15,19 @@ const getAgents = async (managerId, filters) => {
   const { search, page = 1, limit = 10 } = filters;
   const offset = (page - 1) * limit;
 
+  // Отримуємо роль користувача
+  const manager = await User.findByPk(managerId);
+
   const where = {
     role: "agent",
   };
 
-  // Search by email, firstName, lastName
+  // Якщо користувач - менеджер, показуємо тільки його агентів
+  if (manager && manager.role === "manager") {
+    where.managerId = managerId;
+  }
+
+  // Пошук за email, firstName, lastName
   if (search) {
     where[Sequelize.Op.or] = [
       { email: { [Sequelize.Op.like]: `%${search}%` } },
@@ -29,7 +37,7 @@ const getAgents = async (managerId, filters) => {
   }
 
   try {
-    // Find all agents
+    // Знаходимо всіх агентів
     const { count, rows } = await User.findAndCountAll({
       where,
       attributes: [
@@ -65,13 +73,23 @@ const getAgents = async (managerId, filters) => {
  * @param {Object} agentData - Agent data to update
  * @returns {Object} - Updated agent
  */
-const updateAgent = async (agentId, agentData) => {
+const updateAgent = async (agentId, agentData, managerId) => {
   try {
+    // Отримуємо користувача, який робить запит
+    const manager = await User.findByPk(managerId);
+
+    let whereCondition = {
+      id: agentId,
+      role: "agent",
+    };
+
+    // Якщо користувач - менеджер, він може редагувати лише своїх агентів
+    if (manager && manager.role === "manager") {
+      whereCondition.managerId = managerId;
+    }
+
     const agent = await User.findOne({
-      where: {
-        id: agentId,
-        role: "agent",
-      },
+      where: whereCondition,
     });
 
     if (!agent) {
@@ -80,7 +98,7 @@ const updateAgent = async (agentId, agentData) => {
       throw error;
     }
 
-    // Update only allowed fields
+    // Оновлюємо лише дозволені поля
     const allowedFields = ["firstName", "lastName", "phone"];
     allowedFields.forEach((field) => {
       if (agentData[field] !== undefined) {
@@ -98,6 +116,7 @@ const updateAgent = async (agentId, agentData) => {
       phone: agent.phone,
       isActive: agent.isActive,
       createdAt: agent.createdAt,
+      managerId: agent.managerId,
     };
   } catch (error) {
     logger.error(`Failed to update agent: ${error.message}`);
@@ -111,13 +130,23 @@ const updateAgent = async (agentId, agentData) => {
  * @param {Boolean} isActive - New active status
  * @returns {Object} - Updated agent
  */
-const toggleAgentStatus = async (agentId, isActive) => {
+const toggleAgentStatus = async (agentId, isActive, managerId) => {
   try {
+    // Отримуємо користувача, який робить запит
+    const manager = await User.findByPk(managerId);
+
+    let whereCondition = {
+      id: agentId,
+      role: "agent",
+    };
+
+    // Якщо користувач - менеджер, він може змінювати статус лише своїх агентів
+    if (manager && manager.role === "manager") {
+      whereCondition.managerId = managerId;
+    }
+
     const agent = await User.findOne({
-      where: {
-        id: agentId,
-        role: "agent",
-      },
+      where: whereCondition,
     });
 
     if (!agent) {
@@ -126,13 +155,13 @@ const toggleAgentStatus = async (agentId, isActive) => {
       throw error;
     }
 
-    // Update status using direct update to avoid SQLite issues
+    // Оновлюємо статус
     await User.update(
       { isActive: isActive ? 1 : 0 },
       { where: { id: agentId } }
     );
 
-    // Re-fetch the agent to get updated data
+    // Отримуємо оновлені дані агента
     const updatedAgent = await User.findByPk(agentId);
 
     return {
@@ -144,6 +173,7 @@ const toggleAgentStatus = async (agentId, isActive) => {
       phone: updatedAgent.phone,
       isActive: Boolean(updatedAgent.isActive),
       createdAt: updatedAgent.createdAt,
+      managerId: updatedAgent.managerId,
     };
   } catch (error) {
     logger.error(`Failed to toggle agent status: ${error.message}`);
@@ -158,26 +188,24 @@ const toggleAgentStatus = async (agentId, isActive) => {
  * @returns {Promise<Object>} - Agent data
  */
 const getAgentById = async (id, requestingUserId) => {
-  // Get requesting user for role check
+  // Отримуємо користувача, який робить запит
   const requestingUser = await User.findByPk(requestingUserId);
 
   if (!requestingUser) {
-    throw new ApiError(401, "Unauthorized access");
+    const error = new Error("Unauthorized access");
+    error.status = 401;
+    throw error;
   }
 
-  // Build query based on user role
+  // Формуємо умову запиту залежно від ролі
   let whereCondition = { id, role: "agent" };
 
-  // If user is manager, they can only view their own agents
-  // This depends on how your relationship is structured
-  // Modify this according to your actual database schema
+  // Якщо користувач - менеджер, він може бачити лише своїх агентів
   if (requestingUser.role === "manager") {
-    // Here, adding appropriate conditions based on your schema
-    // For example, if agents have a createdBy field indicating the manager:
-    // whereCondition.createdBy = requestingUserId;
+    whereCondition.managerId = requestingUserId;
   }
 
-  // Find agent in database
+  // Шукаємо агента в базі даних
   const agent = await User.findOne({
     where: whereCondition,
     attributes: [
@@ -188,12 +216,15 @@ const getAgentById = async (id, requestingUserId) => {
       "phone",
       "isActive",
       "createdAt",
+      "managerId",
     ],
   });
 
-  // If agent not found, throw error
+  // Якщо агента не знайдено, викидаємо помилку
   if (!agent) {
-    throw new ApiError(404, "Agent not found");
+    const error = new Error("Agent not found");
+    error.status = 404;
+    throw error;
   }
 
   return agent;
