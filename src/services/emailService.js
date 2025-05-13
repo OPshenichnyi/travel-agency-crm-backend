@@ -1,17 +1,25 @@
+// src/services/emailService.js
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
 
 dotenv.config();
 
 // Create transporter
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: process.env.SMTP_PORT === "465",
+  port: parseInt(process.env.SMTP_PORT, 10),
+  secure: process.env.SMTP_PORT === "465", // true для 465, false для інших портів
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // Додаємо налаштування для розробки
+  ...(process.env.NODE_ENV === "development" && {
+    tls: {
+      rejectUnauthorized: false, // В режимі розробки не перевіряємо сертифікати
+    },
+  }),
 });
 
 /**
@@ -61,15 +69,55 @@ const sendInvitation = async (
     `,
   };
 
-  return transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info(
+      `Invitation email sent to ${to}. Message ID: ${info.messageId}`
+    );
+    return info;
+  } catch (error) {
+    logger.error(`Failed to send invitation email: ${error.message}`);
+
+    // В режимі розробки просто логуємо помилку і продовжуємо роботу
+    if (process.env.NODE_ENV === "development") {
+      logger.info("Email sending failed, but continuing in development mode");
+      return { messageId: "dev-mode-no-email-sent" };
+    }
+
+    throw error;
+  }
 };
 
 // Verify connection
 const verifyConnection = async () => {
-  if (process.env.NODE_ENV === "production") {
-    return transporter.verify();
+  try {
+    if (process.env.NODE_ENV === "production") {
+      const result = await transporter.verify();
+      logger.info("SMTP connection verified successfully");
+      return result;
+    }
+
+    // В режимі розробки виконуємо спробу перевірки, але не зупиняємо додаток при помилці
+    try {
+      const result = await transporter.verify();
+      logger.info("SMTP connection verified successfully");
+      return result;
+    } catch (devError) {
+      logger.warn(
+        `SMTP verification failed in development mode: ${devError.message}`
+      );
+      logger.info("Continuing without email verification in development mode");
+      return true;
+    }
+  } catch (error) {
+    logger.error(`Failed to verify email connection: ${error.message}`);
+
+    if (process.env.NODE_ENV === "production") {
+      throw error;
+    }
+
+    return true;
   }
-  return true;
 };
 
 export { sendInvitation, verifyConnection };

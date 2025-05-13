@@ -136,6 +136,128 @@ const swaggerOptions = {
             },
           },
         },
+        Order: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              format: "uuid",
+              description: "Унікальний ідентифікатор замовлення",
+            },
+            agentId: {
+              type: "string",
+              format: "uuid",
+              description: "ID агента, який створив замовлення",
+            },
+            checkIn: {
+              type: "string",
+              format: "date-time",
+              description: "Дата заїзду",
+            },
+            checkOut: {
+              type: "string",
+              format: "date-time",
+              description: "Дата виїзду",
+            },
+            nights: {
+              type: "integer",
+              description: "Кількість ночей",
+            },
+            propertyName: {
+              type: "string",
+              description: "Назва об'єкта розміщення",
+            },
+            location: {
+              type: "string",
+              description: "Місце розташування",
+            },
+            reservationNo: {
+              type: "integer",
+              description: "Номер бронювання",
+            },
+            reservationCode: {
+              type: "string",
+              description: "Код бронювання",
+            },
+            country: {
+              type: "string",
+              description: "Країна",
+            },
+            clientName: {
+              type: "string",
+              description: "Ім'я клієнта",
+            },
+            clientIdNo: {
+              type: "string",
+              description: "Номер ID клієнта",
+            },
+            guests: {
+              type: "string",
+              description: "Інформація про гостей",
+            },
+            clientPhone: {
+              type: "string",
+              description: "Телефон клієнта",
+            },
+            officialPrice: {
+              type: "number",
+              format: "float",
+              description: "Офіційна ціна",
+            },
+            tax: {
+              type: "number",
+              format: "float",
+              description: "Податок",
+            },
+            totalPrice: {
+              type: "number",
+              format: "float",
+              description: "Загальна ціна",
+            },
+            depositBank: {
+              type: "number",
+              format: "float",
+              description: "Сума депозиту до сплати через банк",
+            },
+            cashOnCheckIn: {
+              type: "number",
+              format: "float",
+              description: "Сума до сплати при заїзді",
+            },
+            damageDeposit: {
+              type: "string",
+              enum: ["yes", "no"],
+              description: "Наявність депозиту за пошкодження",
+            },
+            depositPaid: {
+              type: "boolean",
+              description: "Чи оплачено депозит",
+            },
+            status: {
+              type: "string",
+              enum: ["draft", "confirmed", "paid"],
+              description: "Статус замовлення",
+            },
+            pdfInvoiceUrl: {
+              type: "string",
+              description: "URL PDF-рахунку",
+            },
+            pdfVoucherUrl: {
+              type: "string",
+              description: "URL PDF-ваучера",
+            },
+            createdAt: {
+              type: "string",
+              format: "date-time",
+              description: "Дата створення замовлення",
+            },
+            updatedAt: {
+              type: "string",
+              format: "date-time",
+              description: "Дата останнього оновлення замовлення",
+            },
+          },
+        },
       },
     },
   },

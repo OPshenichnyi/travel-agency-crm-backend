@@ -14,6 +14,18 @@ import {
   changePassword,
 } from "./profileService.js";
 import { getAgents, updateAgent, toggleAgentStatus } from "./agentService.js";
+
+import {
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  markDepositPaid,
+  getAgentOrders,
+  getManagerOrders,
+  confirmOrder,
+  confirmPayment,
+} from "./orderService.js";
+
 export {
   login,
   register,
@@ -32,4 +44,12 @@ export {
   getAgents,
   updateAgent,
   toggleAgentStatus,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  markDepositPaid,
+  getManagerOrders,
+  getAgentOrders,
+  confirmOrder,
+  confirmPayment,
 };
