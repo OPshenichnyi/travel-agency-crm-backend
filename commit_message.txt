@@ -1,0 +1,25 @@
+fix: Resolve authentication issues and improve password handling
+
+Changes made:
+- Remove duplicate password hashing in adminService
+- Centralize password hashing logic in User model hooks
+- Add comprehensive logging for authentication flow
+
+Details:
+1. Password Management:
+   - Remove bcrypt hashing from adminService.js
+   - Keep password hashing only in User model hooks
+   - Fix double hashing issue that caused login failures
+
+2. Logging Improvements:
+   - Add detailed logging in authController for request tracking
+   - Implement password comparison logging in User model
+   - Add admin registration process logging
+
+3. Code Organization:
+   - Centralize password handling logic in User model
+   - Improve code maintainability and security
+   - Follow single responsibility principle for password hashing
+
+This fix resolves the authentication issues where users could not log in
+after registration due to double password hashing. 
