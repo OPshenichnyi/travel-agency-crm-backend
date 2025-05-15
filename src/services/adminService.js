@@ -1,5 +1,4 @@
 import { User } from "../models/index.js";
-import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { generateToken } from "./jwtService.js";
 import logger from "../utils/logger.js";
@@ -11,6 +10,8 @@ import logger from "../utils/logger.js";
  */
 const registerFirstAdmin = async (adminData) => {
   try {
+    logger.info("Attempting to register first admin");
+
     // Check if any admin already exists
     const adminExists = await User.findOne({ where: { role: "admin" } });
 
@@ -20,21 +21,19 @@ const registerFirstAdmin = async (adminData) => {
       throw error;
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(adminData.password, salt);
-
-    // Create admin user
+    // Create admin user (password will be hashed by User model hooks)
     const admin = await User.create({
       id: uuidv4(),
       role: "admin",
       email: adminData.email,
-      password: hashedPassword,
+      password: adminData.password,
       firstName: adminData.firstName || "Admin",
       lastName: adminData.lastName || "User",
       phone: adminData.phone,
       isActive: true,
     });
+
+    logger.info("Admin user created successfully");
 
     // Generate JWT token
     const token = generateToken(admin);

@@ -1,6 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import bcrypt from "bcryptjs";
 import sequelize from "../config/database.js";
+import logger from "../utils/logger.js";
 
 class User extends Model {
   /**
@@ -9,7 +10,15 @@ class User extends Model {
    * @returns {Promise<boolean>} - Comparison result
    */
   async comparePassword(candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password);
+    try {
+      logger.info("Comparing password...");
+      const isMatch = await bcrypt.compare(candidatePassword, this.password);
+      logger.info(`Password comparison result: ${isMatch}`);
+      return isMatch;
+    } catch (error) {
+      logger.error(`Error comparing passwords: ${error.message}`);
+      return false;
+    }
   }
 }
 

@@ -1,9 +1,8 @@
 import {
   createOrder,
+  getOrderById,
   updateOrder,
-  deleteOrder,
-  markDepositPaid,
-  getAgentOrders,
+  getOrders,
 } from "../services/index.js";
 
 /**
@@ -14,13 +13,36 @@ import {
  */
 const createOrderController = async (req, res, next) => {
   try {
-    const orderData = req.body;
-    const agentId = req.user.id;
+    // For agent users, set agentId to their own ID
+    if (req.user.role === "agent") {
+      req.body.agentId = req.user.id;
+    }
 
-    const order = await createOrder(orderData, agentId);
+    const orderData = req.body;
+    const order = await createOrder(orderData);
 
     res.status(201).json({
       message: "Order created successfully",
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get order by ID controller
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next function
+ */
+const getOrderByIdController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await getOrderById(id, req.user.id, req.user.role);
+
+    res.status(200).json({
+      message: "Order fetched successfully",
       order,
     });
   } catch (error) {
@@ -38,13 +60,16 @@ const updateOrderController = async (req, res, next) => {
   try {
     const { id } = req.params;
     const orderData = req.body;
-    const agentId = req.user.id;
-
-    const order = await updateOrder(id, orderData, agentId);
+    const updatedOrder = await updateOrder(
+      id,
+      orderData,
+      req.user.id,
+      req.user.role
+    );
 
     res.status(200).json({
       message: "Order updated successfully",
-      order,
+      order: updatedOrder,
     });
   } catch (error) {
     next(error);
@@ -52,57 +77,13 @@ const updateOrderController = async (req, res, next) => {
 };
 
 /**
- * Delete order controller
+ * Get orders controller
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-const deleteOrderController = async (req, res, next) => {
+const getOrdersController = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const agentId = req.user.id;
-
-    const result = await deleteOrder(id, agentId);
-
-    res.status(200).json({
-      message: "Order deleted successfully",
-      id: result.id,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Mark deposit paid controller
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
- */
-const markDepositPaidController = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const agentId = req.user.id;
-
-    const order = await markDepositPaid(id, agentId);
-
-    res.status(200).json({
-      message: "Deposit marked as paid successfully",
-      order,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-/**
- * Get agent orders controller
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
- */
-const getAgentOrdersController = async (req, res, next) => {
-  try {
-    const agentId = req.user.id;
     const filters = {
       status: req.query.status,
       search: req.query.search,
@@ -110,7 +91,7 @@ const getAgentOrdersController = async (req, res, next) => {
       limit: req.query.limit,
     };
 
-    const result = await getAgentOrders(agentId, filters);
+    const result = await getOrders(filters, req.user.id, req.user.role);
 
     res.status(200).json(result);
   } catch (error) {
@@ -120,8 +101,7 @@ const getAgentOrdersController = async (req, res, next) => {
 
 export {
   createOrderController,
+  getOrderByIdController,
   updateOrderController,
-  deleteOrderController,
-  markDepositPaidController,
-  getAgentOrdersController,
+  getOrdersController,
 };

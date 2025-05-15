@@ -2,30 +2,188 @@ import express from "express";
 import { body, query, param } from "express-validator";
 import {
   createOrderController,
+  getOrderByIdController,
   updateOrderController,
-  deleteOrderController,
-  markDepositPaidController,
-  getAgentOrdersController,
+  getOrdersController,
 } from "../controllers/orderController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { checkRole } from "../middleware/roleMiddleware.js";
 import { validate } from "../middleware/validationMiddleware.js";
+import { Sequelize } from "sequelize";
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
 
-// Agent can create, update, delete orders and mark deposit as paid
-// Only agents can access these routes
-router.use(checkRole("agent"));
+/**
+ * @swagger
+ * /orders:
+ *   post:
+ *     summary: Створення нового замовлення
+ *     description: Створює нове замовлення. Агенти можуть створювати замовлення тільки від свого імені.
+ *     tags: [Замовлення]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - agentName
+ *               - agentCountry
+ *               - checkIn
+ *               - checkOut
+ *               - nights
+ *               - locationTravel
+ *               - reservationNumber
+ *               - clientName
+ *               - clientPhone
+ *               - guests
+ *               - officialPrice
+ *               - payments
+ *             properties:
+ *               agentId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID агента (для менеджерів та адміністраторів)
+ *               agentName:
+ *                 type: string
+ *                 description: Ім'я агента
+ *               agentCountry:
+ *                 type: string
+ *                 description: Країна агента
+ *               checkIn:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата заїзду
+ *               checkOut:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата виїзду
+ *               nights:
+ *                 type: integer
+ *                 description: Кількість ночей
+ *               locationTravel:
+ *                 type: string
+ *                 description: Місце подорожі
+ *               reservationNumber:
+ *                 type: integer
+ *                 description: Номер бронювання
+ *               clientName:
+ *                 type: string
+ *                 description: Ім'я клієнта
+ *               clientPhone:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Номери телефонів клієнта
+ *               clientEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: Email клієнта
+ *               guests:
+ *                 type: object
+ *                 description: Інформація про гостей
+ *               officialPrice:
+ *                 type: number
+ *                 description: Офіційна ціна
+ *               taxClean:
+ *                 type: number
+ *                 description: Податок на прибирання
+ *               totalPrice:
+ *                 type: number
+ *                 description: Загальна ціна
+ *               bankAccount:
+ *                 type: string
+ *                 description: Банківський рахунок для оплати
+ *               payments:
+ *                 type: object
+ *                 description: Інформація про оплати
+ *     responses:
+ *       201:
+ *         description: Замовлення успішно створено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Order created successfully
+ *                 order:
+ *                   type: object
+ *       401:
+ *         description: Необхідна автентифікація
+ *       403:
+ *         description: Недостатньо прав для виконання операції
+ *       422:
+ *         description: Помилка валідації даних
+ */
+router.post(
+  "/",
+  [
+    // Body validation for required fields
+    body("agentName").notEmpty().withMessage("Agent name is required"),
+    body("agentCountry").notEmpty().withMessage("Agent country is required"),
+    body("checkIn").isDate().withMessage("Valid check-in date is required"),
+    body("checkOut").isDate().withMessage("Valid check-out date is required"),
+    body("nights")
+      .isInt({ min: 1 })
+      .withMessage("Valid number of nights is required"),
+    body("locationTravel").notEmpty().withMessage("Location is required"),
+    body("reservationNumber")
+      .isInt({ min: 1 })
+      .withMessage("Valid reservation number is required"),
+    body("clientName").notEmpty().withMessage("Client name is required"),
+    body("clientPhone")
+      .isArray()
+      .withMessage("Client phone numbers must be an array"),
+    body("clientEmail")
+      .optional()
+      .isEmail()
+      .withMessage("Valid client email is required if provided"),
+    body("guests").isObject().withMessage("Guests information is required"),
+    body("officialPrice")
+      .isFloat({ min: 0 })
+      .withMessage("Valid official price is required"),
+    body("taxClean")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Valid tax/clean fee is required if provided"),
+    body("bankAccount")
+      .optional()
+      .isString()
+      .withMessage("Bank account must be a string"),
+    body("payments").isObject().withMessage("Payments information is required"),
+
+    // Check if admin/manager is creating an order for an agent
+    (req, res, next) => {
+      // If agentId is provided and user is not an admin or manager, throw error
+      if (req.body.agentId && !["admin", "manager"].includes(req.user.role)) {
+        return res.status(403).json({
+          error: {
+            status: 403,
+            message: "Only admin or manager can create orders for agents",
+          },
+        });
+      }
+      next();
+    },
+
+    validate,
+  ],
+  createOrderController
+);
 
 /**
  * @swagger
  * /orders:
  *   get:
- *     summary: Отримання списку замовлень агента
- *     description: Отримує список замовлень, створених поточним агентом.
+ *     summary: Отримання списку замовлень
+ *     description: Отримує список замовлень. Адміністратори бачать всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення.
  *     tags: [Замовлення]
  *     security:
  *       - bearerAuth: []
@@ -34,13 +192,13 @@ router.use(checkRole("agent"));
  *         name: status
  *         schema:
  *           type: string
- *           enum: [draft, confirmed, paid]
+ *           enum: [aprove, unpaid, paid]
  *         description: Фільтр за статусом замовлення
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Пошук за ім'ям клієнта, назвою об'єкта або місцем розташування
+ *         description: Пошук за ім'ям клієнта, локацією або email
  *       - in: query
  *         name: page
  *         schema:
@@ -64,7 +222,7 @@ router.use(checkRole("agent"));
  *                 orders:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/Order'
+ *                     type: object
  *                 total:
  *                   type: integer
  *                   description: Загальна кількість замовлень
@@ -79,17 +237,15 @@ router.use(checkRole("agent"));
  *                   description: Кількість елементів на сторінці
  *       401:
  *         description: Необхідна автентифікація
- *       403:
- *         description: Недостатньо прав для виконання операції
  */
 router.get(
   "/",
   [
-    // Validation
+    // Query validation
     query("status")
       .optional()
-      .isIn(["draft", "confirmed", "paid"])
-      .withMessage("Invalid status value"),
+      .isIn(["aprove", "unpaid", "paid"])
+      .withMessage("Invalid status"),
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -100,104 +256,29 @@ router.get(
       .withMessage("Limit must be between 1 and 100"),
     validate,
   ],
-  getAgentOrdersController
+  getOrdersController
 );
 
 /**
  * @swagger
- * /orders:
- *   post:
- *     summary: Створення нового замовлення
- *     description: Створює нове замовлення для авторизованого агента.
+ * /orders/{id}:
+ *   get:
+ *     summary: Отримання замовлення за ID
+ *     description: Отримує дані замовлення за його ID. Адміністратори бачать всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення.
  *     tags: [Замовлення]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - checkIn
- *               - checkOut
- *               - nights
- *               - propertyName
- *               - location
- *               - reservationNo
- *               - reservationCode
- *               - country
- *               - clientName
- *               - clientIdNo
- *               - guests
- *               - clientPhone
- *               - officialPrice
- *               - tax
- *               - totalPrice
- *               - depositBank
- *               - cashOnCheckIn
- *               - damageDeposit
- *             properties:
- *               checkIn:
- *                 type: string
- *                 format: date
- *                 description: Дата заїзду
- *               checkOut:
- *                 type: string
- *                 format: date
- *                 description: Дата виїзду
- *               nights:
- *                 type: integer
- *                 description: Кількість ночей
- *               propertyName:
- *                 type: string
- *                 description: Назва об'єкта розміщення
- *               location:
- *                 type: string
- *                 description: Місце розташування
- *               reservationNo:
- *                 type: integer
- *                 description: Номер бронювання
- *               reservationCode:
- *                 type: string
- *                 description: Код бронювання
- *               country:
- *                 type: string
- *                 description: Країна
- *               clientName:
- *                 type: string
- *                 description: Ім'я клієнта
- *               clientIdNo:
- *                 type: string
- *                 description: Номер ID клієнта
- *               guests:
- *                 type: string
- *                 description: Інформація про гостей
- *               clientPhone:
- *                 type: string
- *                 description: Телефон клієнта
- *               officialPrice:
- *                 type: number
- *                 description: Офіційна ціна
- *               tax:
- *                 type: number
- *                 description: Податок
- *               totalPrice:
- *                 type: number
- *                 description: Загальна ціна
- *               depositBank:
- *                 type: number
- *                 description: Сума депозиту до сплати через банк
- *               cashOnCheckIn:
- *                 type: number
- *                 description: Сума до сплати при заїзді
- *               damageDeposit:
- *                 type: string
- *                 enum: [yes, no]
- *                 description: Наявність депозиту за пошкодження
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID замовлення
  *     responses:
- *       201:
- *         description: Замовлення успішно створено
+ *       200:
+ *         description: Замовлення успішно отримано
  *         content:
  *           application/json:
  *             schema:
@@ -205,59 +286,20 @@ router.get(
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Order created successfully
+ *                   example: Order fetched successfully
  *                 order:
- *                   $ref: '#/components/schemas/Order'
+ *                   type: object
  *       401:
  *         description: Необхідна автентифікація
  *       403:
  *         description: Недостатньо прав для виконання операції
- *       422:
- *         description: Помилка валідації даних
+ *       404:
+ *         description: Замовлення не знайдено
  */
-router.post(
-  "/",
-  [
-    // Validation
-    body("checkIn").isISO8601().withMessage("Invalid check-in date format"),
-    body("checkOut").isISO8601().withMessage("Invalid check-out date format"),
-    body("nights")
-      .isInt({ min: 1 })
-      .withMessage("Nights must be a positive integer"),
-    body("propertyName").notEmpty().withMessage("Property name is required"),
-    body("location").notEmpty().withMessage("Location is required"),
-    body("reservationNo")
-      .isInt()
-      .withMessage("Reservation number must be an integer"),
-    body("reservationCode")
-      .notEmpty()
-      .withMessage("Reservation code is required"),
-    body("country").notEmpty().withMessage("Country is required"),
-    body("clientName").notEmpty().withMessage("Client name is required"),
-    body("clientIdNo").notEmpty().withMessage("Client ID number is required"),
-    body("guests").notEmpty().withMessage("Guests information is required"),
-    body("clientPhone").notEmpty().withMessage("Client phone is required"),
-    body("officialPrice")
-      .isFloat({ min: 0 })
-      .withMessage("Official price must be a positive number"),
-    body("tax")
-      .isFloat({ min: 0 })
-      .withMessage("Tax must be a non-negative number"),
-    body("totalPrice")
-      .isFloat({ min: 0 })
-      .withMessage("Total price must be a positive number"),
-    body("depositBank")
-      .isFloat({ min: 0 })
-      .withMessage("Deposit bank amount must be a non-negative number"),
-    body("cashOnCheckIn")
-      .isFloat({ min: 0 })
-      .withMessage("Cash on check-in must be a non-negative number"),
-    body("damageDeposit")
-      .isIn(["yes", "no"])
-      .withMessage("Damage deposit must be either 'yes' or 'no'"),
-    validate,
-  ],
-  createOrderController
+router.get(
+  "/:id",
+  [param("id").isUUID(4).withMessage("Invalid order ID format"), validate],
+  getOrderByIdController
 );
 
 /**
@@ -265,7 +307,7 @@ router.post(
  * /orders/{id}:
  *   put:
  *     summary: Оновлення замовлення
- *     description: Оновлює існуюче замовлення. Доступно тільки для замовлень агента зі статусом 'draft'.
+ *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси.
  *     tags: [Замовлення]
  *     security:
  *       - bearerAuth: []
@@ -284,6 +326,12 @@ router.post(
  *           schema:
  *             type: object
  *             properties:
+ *               agentName:
+ *                 type: string
+ *                 description: Ім'я агента
+ *               agentCountry:
+ *                 type: string
+ *                 description: Країна агента
  *               checkIn:
  *                 type: string
  *                 format: date
@@ -295,52 +343,46 @@ router.post(
  *               nights:
  *                 type: integer
  *                 description: Кількість ночей
- *               propertyName:
+ *               locationTravel:
  *                 type: string
- *                 description: Назва об'єкта розміщення
- *               location:
- *                 type: string
- *                 description: Місце розташування
- *               reservationNo:
+ *                 description: Місце подорожі
+ *               reservationNumber:
  *                 type: integer
  *                 description: Номер бронювання
- *               reservationCode:
- *                 type: string
- *                 description: Код бронювання
- *               country:
- *                 type: string
- *                 description: Країна
  *               clientName:
  *                 type: string
  *                 description: Ім'я клієнта
- *               clientIdNo:
- *                 type: string
- *                 description: Номер ID клієнта
- *               guests:
- *                 type: string
- *                 description: Інформація про гостей
  *               clientPhone:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Номери телефонів клієнта
+ *               clientEmail:
  *                 type: string
- *                 description: Телефон клієнта
+ *                 format: email
+ *                 description: Email клієнта
+ *               guests:
+ *                 type: object
+ *                 description: Інформація про гостей
  *               officialPrice:
  *                 type: number
  *                 description: Офіційна ціна
- *               tax:
+ *               taxClean:
  *                 type: number
- *                 description: Податок
+ *                 description: Податок на прибирання
  *               totalPrice:
  *                 type: number
  *                 description: Загальна ціна
- *               depositBank:
- *                 type: number
- *                 description: Сума депозиту до сплати через банк
- *               cashOnCheckIn:
- *                 type: number
- *                 description: Сума до сплати при заїзді
- *               damageDeposit:
+ *               bankAccount:
  *                 type: string
- *                 enum: [yes, no]
- *                 description: Наявність депозиту за пошкодження
+ *                 description: Банківський рахунок для оплати
+ *               payments:
+ *                 type: object
+ *                 description: Інформація про оплати
+ *               statusOrder:
+ *                 type: string
+ *                 enum: [aprove, unpaid, paid]
+ *                 description: Статус замовлення (тільки для адміністраторів і менеджерів)
  *     responses:
  *       200:
  *         description: Замовлення успішно оновлено
@@ -353,11 +395,11 @@ router.post(
  *                   type: string
  *                   example: Order updated successfully
  *                 order:
- *                   $ref: '#/components/schemas/Order'
+ *                   type: object
  *       401:
  *         description: Необхідна автентифікація
  *       403:
- *         description: Недостатньо прав для виконання операції або замовлення вже підтверджено
+ *         description: Недостатньо прав для виконання операції
  *       404:
  *         description: Замовлення не знайдено
  *       422:
@@ -366,171 +408,99 @@ router.post(
 router.put(
   "/:id",
   [
-    // Validation
     param("id").isUUID(4).withMessage("Invalid order ID format"),
+
+    // Validate optional fields for update
+    body("agentName")
+      .optional()
+      .notEmpty()
+      .withMessage("Agent name cannot be empty if provided"),
+    body("agentCountry")
+      .optional()
+      .notEmpty()
+      .withMessage("Agent country cannot be empty if provided"),
     body("checkIn")
       .optional()
-      .isISO8601()
-      .withMessage("Invalid check-in date format"),
+      .isDate()
+      .withMessage("Valid check-in date is required if provided"),
     body("checkOut")
       .optional()
-      .isISO8601()
-      .withMessage("Invalid check-out date format"),
+      .isDate()
+      .withMessage("Valid check-out date is required if provided"),
     body("nights")
       .optional()
       .isInt({ min: 1 })
-      .withMessage("Nights must be a positive integer"),
-    body("propertyName")
-      .optional()
-      .notEmpty()
-      .withMessage("Property name cannot be empty if provided"),
-    body("location")
+      .withMessage("Valid number of nights is required if provided"),
+    body("locationTravel")
       .optional()
       .notEmpty()
       .withMessage("Location cannot be empty if provided"),
-    body("reservationNo")
+    body("reservationNumber")
       .optional()
-      .isInt()
-      .withMessage("Reservation number must be an integer"),
-    body("reservationCode")
-      .optional()
-      .notEmpty()
-      .withMessage("Reservation code cannot be empty if provided"),
-    body("country")
-      .optional()
-      .notEmpty()
-      .withMessage("Country cannot be empty if provided"),
+      .isInt({ min: 1 })
+      .withMessage("Valid reservation number is required if provided"),
     body("clientName")
       .optional()
       .notEmpty()
       .withMessage("Client name cannot be empty if provided"),
-    body("clientIdNo")
-      .optional()
-      .notEmpty()
-      .withMessage("Client ID number cannot be empty if provided"),
-    body("guests")
-      .optional()
-      .notEmpty()
-      .withMessage("Guests information cannot be empty if provided"),
     body("clientPhone")
       .optional()
-      .notEmpty()
-      .withMessage("Client phone cannot be empty if provided"),
+      .isArray()
+      .withMessage("Client phone numbers must be an array if provided"),
+    body("clientEmail")
+      .optional()
+      .isEmail()
+      .withMessage("Valid client email is required if provided"),
+    body("guests")
+      .optional()
+      .isObject()
+      .withMessage("Guests information must be an object if provided"),
     body("officialPrice")
       .optional()
       .isFloat({ min: 0 })
-      .withMessage("Official price must be a positive number"),
-    body("tax")
+      .withMessage("Valid official price is required if provided"),
+    body("taxClean")
       .optional()
       .isFloat({ min: 0 })
-      .withMessage("Tax must be a non-negative number"),
+      .withMessage("Valid tax/clean fee is required if provided"),
     body("totalPrice")
       .optional()
       .isFloat({ min: 0 })
-      .withMessage("Total price must be a positive number"),
-    body("depositBank")
+      .withMessage("Valid total price is required if provided"),
+    body("bankAccount")
       .optional()
-      .isFloat({ min: 0 })
-      .withMessage("Deposit bank amount must be a non-negative number"),
-    body("cashOnCheckIn")
+      .isString()
+      .withMessage("Bank account must be a string if provided"),
+    body("payments")
       .optional()
-      .isFloat({ min: 0 })
-      .withMessage("Cash on check-in must be a non-negative number"),
-    body("damageDeposit")
+      .isObject()
+      .withMessage("Payments information must be an object if provided"),
+    body("statusOrder")
       .optional()
-      .isIn(["yes", "no"])
-      .withMessage("Damage deposit must be either 'yes' or 'no'"),
+      .isIn(["aprove", "unpaid", "paid"])
+      .withMessage("Status must be one of: aprove, unpaid, paid")
+      .custom((value, { req }) => {
+        // Only admin and manager can change order status
+        if (req.user.role === "agent") {
+          throw new Error("Agents cannot change order status");
+        }
+        return true;
+      }),
+
+    // Custom validator for payment status
+    body("payments.*.status")
+      .optional()
+      .custom((value, { req }) => {
+        // Only admin and manager can change payment status
+        if (req.user.role === "agent") {
+          throw new Error("Agents cannot change payment status");
+        }
+        return true;
+      }),
+
     validate,
   ],
   updateOrderController
-);
-
-/**
- * @swagger
- * /orders/{id}:
- *   delete:
- *     summary: Видалення замовлення
- *     description: Видаляє існуюче замовлення. Доступно тільки для замовлень агента зі статусом 'draft'.
- *     tags: [Замовлення]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: ID замовлення
- *     responses:
- *       200:
- *         description: Замовлення успішно видалено
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Order deleted successfully
- *                 id:
- *                   type: string
- *                   format: uuid
- *                   description: ID видаленого замовлення
- *       401:
- *         description: Необхідна автентифікація
- *       403:
- *         description: Недостатньо прав для виконання операції або замовлення вже підтверджено
- *       404:
- *         description: Замовлення не знайдено
- */
-router.delete(
-  "/:id",
-  [param("id").isUUID(4).withMessage("Invalid order ID format"), validate],
-  deleteOrderController
-);
-
-/**
- * @swagger
- * /orders/{id}/deposit-paid:
- *   patch:
- *     summary: Відмітка про оплату депозиту
- *     description: Позначає депозит за замовлення як оплачений.
- *     tags: [Замовлення]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: ID замовлення
- *     responses:
- *       200:
- *         description: Депозит успішно позначено як оплачений
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Deposit marked as paid successfully
- *                 order:
- *                   $ref: '#/components/schemas/Order'
- *       401:
- *         description: Необхідна автентифікація
- *       403:
- *         description: Недостатньо прав для виконання операції
- *       404:
- *         description: Замовлення не знайдено
- */
-router.patch(
-  "/:id/deposit-paid",
-  [param("id").isUUID(4).withMessage("Invalid order ID format"), validate],
-  markDepositPaidController
 );
 
 export default router;

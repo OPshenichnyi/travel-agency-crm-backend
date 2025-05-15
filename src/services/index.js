@@ -17,13 +17,9 @@ import { getAgents, updateAgent, toggleAgentStatus } from "./agentService.js";
 
 import {
   createOrder,
+  getOrderById,
   updateOrder,
-  deleteOrder,
-  markDepositPaid,
-  getAgentOrders,
-  getManagerOrders,
-  confirmOrder,
-  confirmPayment,
+  getOrders,
 } from "./orderService.js";
 
 export {
@@ -45,11 +41,7 @@ export {
   updateAgent,
   toggleAgentStatus,
   createOrder,
+  getOrderById,
   updateOrder,
-  deleteOrder,
-  markDepositPaid,
-  getManagerOrders,
-  getAgentOrders,
-  confirmOrder,
-  confirmPayment,
+  getOrders,
 };

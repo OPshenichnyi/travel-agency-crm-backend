@@ -27,4 +27,25 @@ const sequelize = new Sequelize({
   transactionType: "IMMEDIATE",
 });
 
+// Test the database connection
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connection has been established successfully.");
+
+    // Check if database file exists
+    const fs = await import("fs");
+    if (fs.existsSync(dbPath)) {
+      console.log("Database file exists at:", dbPath);
+    } else {
+      console.log("Database file does not exist at:", dbPath);
+    }
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+}
+
+// Run the test
+testConnection();
+
 export default sequelize;

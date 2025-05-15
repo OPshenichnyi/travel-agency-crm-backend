@@ -1,4 +1,5 @@
 import { Model, DataTypes } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 import sequelize from "../config/database.js";
 
 class Order extends Model {}
@@ -18,122 +19,109 @@ Order.init(
         key: "id",
       },
     },
-    checkIn: {
+    createdOrder: {
       type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    agentName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    agentCountry: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    checkIn: {
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     checkOut: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     nights: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    propertyName: {
+    locationTravel: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    location: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    reservationNo: {
+    reservationNumber: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    reservationCode: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    country: {
-      type: DataTypes.STRING,
       allowNull: false,
     },
     clientName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    clientIdNo: {
-      type: DataTypes.STRING,
+    clientPhone: {
+      type: DataTypes.JSON, // Store as array
       allowNull: false,
+    },
+    clientEmail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isEmail: {
+          msg: "Invalid email format",
+        },
+      },
     },
     guests: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    clientPhone: {
-      type: DataTypes.STRING,
+      type: DataTypes.JSON, // Store guests info as JSON
       allowNull: false,
     },
     officialPrice: {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    tax: {
+    taxClean: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
     },
     totalPrice: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
     },
-    depositBank: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    cashOnCheckIn: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    damageDeposit: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isIn: {
-          args: [["yes", "no"]],
-          msg: "Damage deposit must be either 'yes' or 'no'",
-        },
-      },
-    },
-    depositPaid: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "draft",
-      validate: {
-        isIn: {
-          args: [["draft", "confirmed", "paid"]],
-          msg: "Status must be one of: draft, confirmed, paid",
-        },
-      },
-    },
-    pdfInvoiceUrl: {
+    bankAccount: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    pdfVoucherUrl: {
+    payments: {
+      type: DataTypes.JSON, // Store payments info as JSON
+      allowNull: false,
+    },
+    statusOrder: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    createdAt: {
-      type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
+      defaultValue: "unpaid", // Default status
+      validate: {
+        isIn: {
+          args: [["aprove", "unpaid", "paid"]],
+          msg: "Status must be one of: aprove, unpaid, paid",
+        },
+      },
     },
   },
   {
     sequelize,
     modelName: "Order",
     tableName: "orders",
+    hooks: {
+      beforeCreate: (order) => {
+        // Calculate total price if not provided
+        if (!order.totalPrice || order.totalPrice === 0) {
+          order.totalPrice = order.officialPrice + (order.taxClean || 0);
+        }
+
+        // Set order ID if not provided
+        if (!order.id) {
+          order.id = uuidv4();
+        }
+      },
+    },
   }
 );
 

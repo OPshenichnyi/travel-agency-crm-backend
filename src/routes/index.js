@@ -6,7 +6,6 @@ import userRoutes from "./userRoutes.js";
 import profileRoutes from "./profileRoutes.js";
 import agentRoutes from "./agentRoutes.js";
 import orderRoutes from "./orderRoutes.js";
-import managerOrderRoutes from "./managerOrderRoutes.js";
 
 const router = express.Router();
 
@@ -26,6 +25,5 @@ router.use("/users", userRoutes);
 router.use("/profile", profileRoutes);
 router.use("/agents", agentRoutes);
 router.use("/orders", orderRoutes);
-router.use("/manager/orders", managerOrderRoutes);
 
 export default router;

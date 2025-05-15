@@ -9,14 +9,16 @@ import logger from "../utils/logger.js";
  * @param {String} password - User password
  * @returns {Object} - User data and token
  */
-// У функції login додайте логування
 const login = async (email, password) => {
   try {
+    logger.info(`Attempting login for email: ${email}`);
+
     // Знайти користувача за email
     const user = await User.findOne({ where: { email } });
 
     // Перевірити, чи існує користувач
     if (!user) {
+      logger.warn(`User not found for email: ${email}`);
       const error = new Error("Invalid email or password");
       error.status = 401;
       throw error;
@@ -24,14 +26,19 @@ const login = async (email, password) => {
 
     // Перевірити, чи користувач активний
     if (!user.isActive) {
+      logger.warn(`Account is deactivated for email: ${email}`);
       const error = new Error("Account is deactivated");
       error.status = 401;
       throw error;
     }
+
     // Перевірити пароль
+    logger.info("Comparing passwords...");
     const isValidPassword = await user.comparePassword(password);
+    logger.info(`Password validation result: ${isValidPassword}`);
 
     if (!isValidPassword) {
+      logger.warn(`Invalid password for user: ${email}`);
       const error = new Error("Invalid email or password");
       error.status = 401;
       throw error;
@@ -39,6 +46,7 @@ const login = async (email, password) => {
 
     // Генерувати JWT токен
     const token = generateToken(user);
+    logger.info(`Login successful for user: ${email}`);
 
     // Повернути дані користувача та токен
     return {
@@ -52,10 +60,11 @@ const login = async (email, password) => {
       token,
     };
   } catch (error) {
-    console.error("Login error:", error.message);
+    logger.error(`Login error for ${email}: ${error.message}`);
     throw error;
   }
 };
+
 /**
  * Register user with invitation token
  * @param {String} token - Invitation token
