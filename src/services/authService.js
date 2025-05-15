@@ -4,19 +4,31 @@ import { generateToken } from "./jwtService.js";
 import logger from "../utils/logger.js";
 
 /**
+ * Authentication service
+ * This module handles all authentication-related operations including login and registration
+ *
+ * @module authService
+ */
+
+/**
  * Login user with email and password
+ * Performs the following steps:
+ * 1. Validates user existence
+ * 2. Checks if account is active
+ * 3. Verifies password
+ * 4. Generates JWT token
+ *
  * @param {String} email - User email
- * @param {String} password - User password
- * @returns {Object} - User data and token
+ * @param {String} password - User password (plain text)
+ * @returns {Object} - User data and JWT token
+ * @throws {Error} - If authentication fails
  */
 const login = async (email, password) => {
   try {
     logger.info(`Attempting login for email: ${email}`);
 
-    // Знайти користувача за email
+    // Step 1: Find and validate user
     const user = await User.findOne({ where: { email } });
-
-    // Перевірити, чи існує користувач
     if (!user) {
       logger.warn(`User not found for email: ${email}`);
       const error = new Error("Invalid email or password");
@@ -24,7 +36,7 @@ const login = async (email, password) => {
       throw error;
     }
 
-    // Перевірити, чи користувач активний
+    // Step 2: Check account status
     if (!user.isActive) {
       logger.warn(`Account is deactivated for email: ${email}`);
       const error = new Error("Account is deactivated");
@@ -32,11 +44,9 @@ const login = async (email, password) => {
       throw error;
     }
 
-    // Перевірити пароль
-    logger.info("Comparing passwords...");
+    // Step 3: Verify password
+    logger.info("Verifying password...");
     const isValidPassword = await user.comparePassword(password);
-    logger.info(`Password validation result: ${isValidPassword}`);
-
     if (!isValidPassword) {
       logger.warn(`Invalid password for user: ${email}`);
       const error = new Error("Invalid email or password");
@@ -44,11 +54,11 @@ const login = async (email, password) => {
       throw error;
     }
 
-    // Генерувати JWT токен
+    // Step 4: Generate authentication token
     const token = generateToken(user);
     logger.info(`Login successful for user: ${email}`);
 
-    // Повернути дані користувача та токен
+    // Return user data and token
     return {
       user: {
         id: user.id,

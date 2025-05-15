@@ -22,4 +22,26 @@ Details:
    - Follow single responsibility principle for password hashing
 
 This fix resolves the authentication issues where users could not log in
-after registration due to double password hashing. 
+after registration due to double password hashing.
+
+docs: Improve authentication service documentation
+
+Changes made:
+- Add comprehensive JSDoc documentation to authService.js
+- Improve code readability with better step descriptions
+- Add detailed module description and function documentation
+
+Details:
+1. Documentation Improvements:
+   - Add module-level documentation for authService
+   - Document all steps in the login process
+   - Add detailed parameter and return type descriptions
+   - Include error handling documentation
+
+2. Code Organization:
+   - Restructure comments to better describe each step
+   - Improve logging messages clarity
+   - Make the authentication flow more transparent
+
+These changes improve code maintainability and make it easier for
+new developers to understand the authentication process. 
