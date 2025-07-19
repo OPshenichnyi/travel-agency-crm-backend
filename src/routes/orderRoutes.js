@@ -33,14 +33,17 @@ router.use(authenticate);
  *             type: object
  *             required:
  *               - agentName
- *               - agentCountry
  *               - checkIn
  *               - checkOut
  *               - nights
- *               - locationTravel
+ *               - countryTravel
+ *               - cityTravel
+ *               - propertyName
+ *               - propertyNumber
  *               - reservationNumber
  *               - clientName
  *               - clientPhone
+ *               - clientCountry
  *               - guests
  *               - officialPrice
  *               - payments
@@ -52,9 +55,6 @@ router.use(authenticate);
  *               agentName:
  *                 type: string
  *                 description: Ім'я агента
- *               agentCountry:
- *                 type: string
- *                 description: Країна агента
  *               checkIn:
  *                 type: string
  *                 format: date
@@ -66,11 +66,20 @@ router.use(authenticate);
  *               nights:
  *                 type: integer
  *                 description: Кількість ночей
- *               locationTravel:
+ *               countryTravel:
  *                 type: string
- *                 description: Місце подорожі
+ *                 description: Країна подорожі
+ *               cityTravel:
+ *                 type: string
+ *                 description: Місто подорожі
+ *               propertyName:
+ *                 type: string
+ *                 description: Назва об'єкта розміщення
+ *               propertyNumber:
+ *                 type: string
+ *                 description: Номер об'єкта розміщення
  *               reservationNumber:
- *                 type: integer
+ *                 type: string
  *                 description: Номер бронювання
  *               clientName:
  *                 type: string
@@ -84,6 +93,9 @@ router.use(authenticate);
  *                 type: string
  *                 format: email
  *                 description: Email клієнта
+ *               clientCountry:
+ *                 type: string
+ *                 description: Країна клієнта
  *               guests:
  *                 type: object
  *                 description: Інформація про гостей
@@ -93,6 +105,9 @@ router.use(authenticate);
  *               taxClean:
  *                 type: number
  *                 description: Податок на прибирання
+ *               discount:
+ *                 type: number
+ *                 description: Знижка
  *               totalPrice:
  *                 type: number
  *                 description: Загальна ціна
@@ -102,6 +117,31 @@ router.use(authenticate);
  *               payments:
  *                 type: object
  *                 description: Інформація про оплати
+ *                 properties:
+ *                   deposit:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       dueDate:
+ *                         type: string
+ *                       paidDate:
+ *                         type: string
+ *                       method:
+ *                         type: string
+ *                   balance:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       dueDate:
+ *                         type: string
+ *                       paidDate:
+ *                         type: string
  *     responses:
  *       201:
  *         description: Замовлення успішно створено
@@ -127,20 +167,25 @@ router.post(
   [
     // Body validation for required fields
     body("agentName").notEmpty().withMessage("Agent name is required"),
-    body("agentCountry").notEmpty().withMessage("Agent country is required"),
     body("checkIn").isDate().withMessage("Valid check-in date is required"),
     body("checkOut").isDate().withMessage("Valid check-out date is required"),
     body("nights")
       .isInt({ min: 1 })
       .withMessage("Valid number of nights is required"),
-    body("locationTravel").notEmpty().withMessage("Location is required"),
+    body("countryTravel").notEmpty().withMessage("Country travel is required"),
+    body("cityTravel").notEmpty().withMessage("City travel is required"),
+    body("propertyName").notEmpty().withMessage("Property name is required"),
+    body("propertyNumber")
+      .notEmpty()
+      .withMessage("Property number is required"),
     body("reservationNumber")
-      .isInt({ min: 1 })
-      .withMessage("Valid reservation number is required"),
+      .notEmpty()
+      .withMessage("Reservation number is required"),
     body("clientName").notEmpty().withMessage("Client name is required"),
     body("clientPhone")
       .isArray()
       .withMessage("Client phone numbers must be an array"),
+    body("clientCountry").notEmpty().withMessage("Client country is required"),
     body("clientEmail")
       .optional()
       .isEmail()
@@ -153,6 +198,10 @@ router.post(
       .optional()
       .isFloat({ min: 0 })
       .withMessage("Valid tax/clean fee is required if provided"),
+    body("discount")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Valid discount is required if provided"),
     body("bankAccount")
       .optional()
       .isString()
@@ -198,7 +247,7 @@ router.post(
  *         name: search
  *         schema:
  *           type: string
- *         description: Пошук за ім'ям клієнта, локацією або email
+ *         description: Пошук за ім'ям клієнта, країною/містом подорожі або email
  *       - in: query
  *         name: page
  *         schema:
@@ -329,9 +378,6 @@ router.get(
  *               agentName:
  *                 type: string
  *                 description: Ім'я агента
- *               agentCountry:
- *                 type: string
- *                 description: Країна агента
  *               checkIn:
  *                 type: string
  *                 format: date
@@ -343,11 +389,20 @@ router.get(
  *               nights:
  *                 type: integer
  *                 description: Кількість ночей
- *               locationTravel:
+ *               countryTravel:
  *                 type: string
- *                 description: Місце подорожі
+ *                 description: Країна подорожі
+ *               cityTravel:
+ *                 type: string
+ *                 description: Місто подорожі
+ *               propertyName:
+ *                 type: string
+ *                 description: Назва об'єкта розміщення
+ *               propertyNumber:
+ *                 type: string
+ *                 description: Номер об'єкта розміщення
  *               reservationNumber:
- *                 type: integer
+ *                 type: string
  *                 description: Номер бронювання
  *               clientName:
  *                 type: string
@@ -361,6 +416,9 @@ router.get(
  *                 type: string
  *                 format: email
  *                 description: Email клієнта
+ *               clientCountry:
+ *                 type: string
+ *                 description: Країна клієнта
  *               guests:
  *                 type: object
  *                 description: Інформація про гостей
@@ -370,6 +428,9 @@ router.get(
  *               taxClean:
  *                 type: number
  *                 description: Податок на прибирання
+ *               discount:
+ *                 type: number
+ *                 description: Знижка
  *               totalPrice:
  *                 type: number
  *                 description: Загальна ціна
@@ -379,6 +440,31 @@ router.get(
  *               payments:
  *                 type: object
  *                 description: Інформація про оплати
+ *                 properties:
+ *                   deposit:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       dueDate:
+ *                         type: string
+ *                       paidDate:
+ *                         type: string
+ *                       method:
+ *                         type: string
+ *                   balance:
+ *                     type: object
+ *                     properties:
+ *                       amount:
+ *                         type: number
+ *                       status:
+ *                         type: string
+ *                       dueDate:
+ *                         type: string
+ *                       paidDate:
+ *                         type: string
  *               statusOrder:
  *                 type: string
  *                 enum: [aprove, unpaid, paid]
@@ -415,10 +501,6 @@ router.put(
       .optional()
       .notEmpty()
       .withMessage("Agent name cannot be empty if provided"),
-    body("agentCountry")
-      .optional()
-      .notEmpty()
-      .withMessage("Agent country cannot be empty if provided"),
     body("checkIn")
       .optional()
       .isDate()
@@ -431,14 +513,26 @@ router.put(
       .optional()
       .isInt({ min: 1 })
       .withMessage("Valid number of nights is required if provided"),
-    body("locationTravel")
+    body("countryTravel")
       .optional()
       .notEmpty()
-      .withMessage("Location cannot be empty if provided"),
+      .withMessage("Country travel cannot be empty if provided"),
+    body("cityTravel")
+      .optional()
+      .notEmpty()
+      .withMessage("City travel cannot be empty if provided"),
+    body("propertyName")
+      .optional()
+      .notEmpty()
+      .withMessage("Property name cannot be empty if provided"),
+    body("propertyNumber")
+      .optional()
+      .notEmpty()
+      .withMessage("Property number cannot be empty if provided"),
     body("reservationNumber")
       .optional()
-      .isInt({ min: 1 })
-      .withMessage("Valid reservation number is required if provided"),
+      .notEmpty()
+      .withMessage("Reservation number cannot be empty if provided"),
     body("clientName")
       .optional()
       .notEmpty()
@@ -447,6 +541,10 @@ router.put(
       .optional()
       .isArray()
       .withMessage("Client phone numbers must be an array if provided"),
+    body("clientCountry")
+      .optional()
+      .notEmpty()
+      .withMessage("Client country cannot be empty if provided"),
     body("clientEmail")
       .optional()
       .isEmail()
@@ -463,6 +561,10 @@ router.put(
       .optional()
       .isFloat({ min: 0 })
       .withMessage("Valid tax/clean fee is required if provided"),
+    body("discount")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Valid discount is required if provided"),
     body("totalPrice")
       .optional()
       .isFloat({ min: 0 })

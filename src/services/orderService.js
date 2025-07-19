@@ -138,18 +138,22 @@ const updateOrder = async (orderId, orderData, userId, userRole) => {
     // Update only allowed fields
     const allowedFields = [
       "agentName",
-      "agentCountry",
       "checkIn",
       "checkOut",
       "nights",
-      "locationTravel",
       "reservationNumber",
       "clientName",
       "clientPhone",
       "clientEmail",
+      "clientCountry",
+      "countryTravel",
+      "cityTravel",
+      "propertyName",
+      "propertyNumber",
       "guests",
       "officialPrice",
       "taxClean",
+      "discount",
       "totalPrice",
       "bankAccount",
     ];
@@ -192,9 +196,11 @@ const updateOrder = async (orderId, orderData, userId, userRole) => {
     // Calculate total price if price components have changed
     if (
       orderData.officialPrice !== undefined ||
-      orderData.taxClean !== undefined
+      orderData.taxClean !== undefined ||
+      orderData.discount !== undefined
     ) {
-      order.totalPrice = order.officialPrice + (order.taxClean || 0);
+      const discount = order.discount || 0;
+      order.totalPrice = order.officialPrice + (order.taxClean || 0) - discount;
     }
 
     await order.save();
@@ -229,7 +235,8 @@ const getOrders = async (filters, userId, userRole) => {
     if (search) {
       whereCondition[Op.or] = [
         { clientName: { [Op.like]: `%${search}%` } },
-        { locationTravel: { [Op.like]: `%${search}%` } },
+        { countryTravel: { [Op.like]: `%${search}%` } },
+        { cityTravel: { [Op.like]: `%${search}%` } },
         { clientEmail: { [Op.like]: `%${search}%` } },
       ];
     }

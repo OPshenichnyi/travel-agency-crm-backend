@@ -28,10 +28,6 @@ Order.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    agentCountry: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     checkIn: {
       type: DataTypes.DATEONLY,
       allowNull: false,
@@ -44,12 +40,8 @@ Order.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    locationTravel: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     reservationNumber: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     clientName: {
@@ -69,6 +61,26 @@ Order.init(
         },
       },
     },
+    clientCountry: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    countryTravel: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    cityTravel: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    propertyName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    propertyNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     guests: {
       type: DataTypes.JSON, // Store guests info as JSON
       allowNull: false,
@@ -80,6 +92,11 @@ Order.init(
     taxClean: {
       type: DataTypes.FLOAT,
       allowNull: true,
+    },
+    discount: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
     },
     totalPrice: {
       type: DataTypes.FLOAT,
@@ -113,7 +130,9 @@ Order.init(
       beforeCreate: (order) => {
         // Calculate total price if not provided
         if (!order.totalPrice || order.totalPrice === 0) {
-          order.totalPrice = order.officialPrice + (order.taxClean || 0);
+          const discount = order.discount || 0;
+          order.totalPrice =
+            order.officialPrice + (order.taxClean || 0) - discount;
         }
 
         // Set order ID if not provided
