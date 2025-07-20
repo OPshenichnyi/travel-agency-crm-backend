@@ -2,6 +2,7 @@ import sequelize from "../config/database.js";
 import User from "./user.js";
 import Invitation from "./invitation.js";
 import Order from "./order.js";
+import BankAccount from "./bankAccount.js";
 
 // Define relationships between models
 Invitation.belongsTo(User, { foreignKey: "invitedBy", as: "inviter" });
@@ -12,6 +13,11 @@ User.hasMany(User, { foreignKey: "managerId", as: "agents" });
 // Order relationships
 User.hasMany(Order, { foreignKey: "agentId", as: "orders" });
 Order.belongsTo(User, { foreignKey: "agentId", as: "agent" });
+
+// BankAccount relationships
+User.hasMany(BankAccount, { foreignKey: "managerId", as: "bankAccounts" });
+BankAccount.belongsTo(User, { foreignKey: "managerId", as: "manager" });
+
 // Sync models with database
 const syncModels = async () => {
   try {
@@ -43,4 +49,4 @@ const syncModels = async () => {
   }
 };
 
-export { sequelize, User, Invitation, Order, syncModels };
+export { sequelize, User, Invitation, Order, BankAccount, syncModels };

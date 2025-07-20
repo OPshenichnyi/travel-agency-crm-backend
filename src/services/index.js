@@ -22,6 +22,14 @@ import {
   getOrders,
 } from "./orderService.js";
 
+import {
+  createBankAccount,
+  updateBankAccount,
+  deleteBankAccount,
+  getBankAccounts,
+  getBankAccountByIdentifier,
+} from "./bankAccountService.js";
+
 export {
   login,
   register,
@@ -44,4 +52,9 @@ export {
   getOrderById,
   updateOrder,
   getOrders,
+  createBankAccount,
+  updateBankAccount,
+  deleteBankAccount,
+  getBankAccounts,
+  getBankAccountByIdentifier,
 };

@@ -1,4 +1,5 @@
 import { Order, User } from "../models/index.js";
+import { Op } from "sequelize";
 import logger from "../utils/logger.js";
 
 /**
