@@ -96,6 +96,9 @@ router.use(authenticate);
  *               clientCountry:
  *                 type: string
  *                 description: Країна клієнта
+ *               clientDocumentNumber:
+ *                 type: string
+ *                 description: Номер паспорта або іншого документа клієнта
  *               guests:
  *                 type: object
  *                 description: Інформація про гостей
@@ -129,8 +132,10 @@ router.use(authenticate);
  *                         type: string
  *                       paidDate:
  *                         type: string
- *                       method:
- *                         type: string
+ *                       paymentMethods:
+ *                         type: array
+ *                         items:
+ *                           type: string
  *                   balance:
  *                     type: object
  *                     properties:
@@ -142,6 +147,10 @@ router.use(authenticate);
  *                         type: string
  *                       paidDate:
  *                         type: string
+ *                       paymentMethods:
+ *                         type: array
+ *                         items:
+ *                           type: string
  *     responses:
  *       201:
  *         description: Замовлення успішно створено
@@ -190,6 +199,10 @@ router.post(
       .optional()
       .isEmail()
       .withMessage("Valid client email is required if provided"),
+    body("clientDocumentNumber")
+      .optional()
+      .isString()
+      .withMessage("Client document number must be a string if provided"),
     body("guests").isObject().withMessage("Guests information is required"),
     body("officialPrice")
       .isFloat({ min: 0 })
@@ -241,7 +254,7 @@ router.post(
  *         name: status
  *         schema:
  *           type: string
- *           enum: [aprove, unpaid, paid]
+ *           enum: [pending, approved, rejected]
  *         description: Фільтр за статусом замовлення
  *       - in: query
  *         name: search
@@ -293,7 +306,7 @@ router.get(
     // Query validation
     query("status")
       .optional()
-      .isIn(["aprove", "unpaid", "paid"])
+      .isIn(["pending", "approved", "rejected"])
       .withMessage("Invalid status"),
     query("page")
       .optional()
@@ -419,6 +432,9 @@ router.get(
  *               clientCountry:
  *                 type: string
  *                 description: Країна клієнта
+ *               clientDocumentNumber:
+ *                 type: string
+ *                 description: Номер паспорта або іншого документа клієнта
  *               guests:
  *                 type: object
  *                 description: Інформація про гостей
@@ -452,8 +468,10 @@ router.get(
  *                         type: string
  *                       paidDate:
  *                         type: string
- *                       method:
- *                         type: string
+ *                       paymentMethods:
+ *                         type: array
+ *                         items:
+ *                           type: string
  *                   balance:
  *                     type: object
  *                     properties:
@@ -465,9 +483,13 @@ router.get(
  *                         type: string
  *                       paidDate:
  *                         type: string
+ *                       paymentMethods:
+ *                         type: array
+ *                         items:
+ *                           type: string
  *               statusOrder:
  *                 type: string
- *                 enum: [aprove, unpaid, paid]
+ *                 enum: [pending, approved, rejected]
  *                 description: Статус замовлення (тільки для адміністраторів і менеджерів)
  *     responses:
  *       200:
@@ -549,6 +571,10 @@ router.put(
       .optional()
       .isEmail()
       .withMessage("Valid client email is required if provided"),
+    body("clientDocumentNumber")
+      .optional()
+      .isString()
+      .withMessage("Client document number must be a string if provided"),
     body("guests")
       .optional()
       .isObject()
@@ -579,8 +605,8 @@ router.put(
       .withMessage("Payments information must be an object if provided"),
     body("statusOrder")
       .optional()
-      .isIn(["aprove", "unpaid", "paid"])
-      .withMessage("Status must be one of: aprove, unpaid, paid")
+      .isIn(["pending", "approved", "rejected"])
+      .withMessage("Status must be one of: pending, approved, rejected")
       .custom((value, { req }) => {
         // Only admin and manager can change order status
         if (req.user.role === "agent") {

@@ -66,6 +66,7 @@ describe("Order API Tests", () => {
         clientPhone: ["+1234567890"],
         clientEmail: "john@example.com",
         clientCountry: "USA",
+        clientDocumentNumber: "AB123456",
         guests: { adults: 2, children: 1 },
         officialPrice: 1000.0,
         taxClean: 50.0,
@@ -77,12 +78,13 @@ describe("Order API Tests", () => {
             status: "paid",
             dueDate: "2024-01-10",
             paidDate: "2024-01-08",
-            method: "card",
+            paymentMethods: ["card"],
           },
           balance: {
             amount: 650,
             status: "unpaid",
             dueDate: "2024-01-14",
+            paymentMethods: [],
           },
         },
       };
@@ -95,14 +97,18 @@ describe("Order API Tests", () => {
 
       expect(response.body.order).toBeDefined();
       expect(response.body.order.clientCountry).toBe("USA");
+      expect(response.body.order.clientDocumentNumber).toBe("AB123456");
       expect(response.body.order.countryTravel).toBe("Spain");
       expect(response.body.order.cityTravel).toBe("Barcelona");
       expect(response.body.order.propertyName).toBe("Hotel Barcelona");
       expect(response.body.order.propertyNumber).toBe("HB001");
       expect(response.body.order.discount).toBe(100.0);
       expect(response.body.order.totalPrice).toBe(950.0); // 1000 + 50 - 100
-      expect(response.body.order.payments.balance.method).toBeUndefined();
-      expect(response.body.order.payments.deposit.method).toBe("card");
+      expect(response.body.order.statusOrder).toBe("pending"); // Default status
+      expect(response.body.order.payments.balance.paymentMethods).toEqual([]);
+      expect(response.body.order.payments.deposit.paymentMethods).toEqual([
+        "card",
+      ]);
     });
 
     it("should reject order with old structure fields", async () => {
@@ -150,7 +156,88 @@ describe("Order API Tests", () => {
           deposit: { amount: 300, status: "paid" },
           balance: { amount: 700, status: "unpaid" },
         },
-        // Missing: countryTravel, cityTravel, propertyName, propertyNumber, clientCountry
+      };
+
+      const response = await request(app)
+        .post("/orders")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send(orderData)
+        .expect(422);
+
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it("should validate new status values", async () => {
+      const orderData = {
+        agentId: agentUser.id,
+        agentName: "Test Agent",
+        checkIn: "2024-01-15",
+        checkOut: "2024-01-20",
+        nights: 5,
+        countryTravel: "Spain",
+        cityTravel: "Barcelona",
+        propertyName: "Hotel Barcelona",
+        propertyNumber: "HB001",
+        reservationNumber: "HB12345",
+        clientName: "John Doe",
+        clientPhone: ["+1234567890"],
+        clientCountry: "USA",
+        guests: { adults: 2, children: 1 },
+        officialPrice: 1000.0,
+        statusOrder: "approved", // New valid status
+        payments: {
+          deposit: {
+            amount: 300,
+            status: "paid",
+            paymentMethods: ["card"],
+          },
+          balance: {
+            amount: 700,
+            status: "unpaid",
+            paymentMethods: [],
+          },
+        },
+      };
+
+      const response = await request(app)
+        .post("/orders")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send(orderData)
+        .expect(201);
+
+      expect(response.body.order.statusOrder).toBe("approved");
+    });
+
+    it("should reject invalid status values", async () => {
+      const orderData = {
+        agentId: agentUser.id,
+        agentName: "Test Agent",
+        checkIn: "2024-01-15",
+        checkOut: "2024-01-20",
+        nights: 5,
+        countryTravel: "Spain",
+        cityTravel: "Barcelona",
+        propertyName: "Hotel Barcelona",
+        propertyNumber: "HB001",
+        reservationNumber: "HB12345",
+        clientName: "John Doe",
+        clientPhone: ["+1234567890"],
+        clientCountry: "USA",
+        guests: { adults: 2, children: 1 },
+        officialPrice: 1000.0,
+        statusOrder: "aprove", // Old invalid status
+        payments: {
+          deposit: {
+            amount: 300,
+            status: "paid",
+            paymentMethods: ["card"],
+          },
+          balance: {
+            amount: 700,
+            status: "unpaid",
+            paymentMethods: [],
+          },
+        },
       };
 
       const response = await request(app)

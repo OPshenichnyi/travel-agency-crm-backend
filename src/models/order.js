@@ -65,6 +65,11 @@ Order.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    clientDocumentNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      description: "Passport number or other client document number",
+    },
     countryTravel: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -113,11 +118,11 @@ Order.init(
     statusOrder: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "unpaid", // Default status
+      defaultValue: "pending", // Default status
       validate: {
         isIn: {
-          args: [["aprove", "unpaid", "paid"]],
-          msg: "Status must be one of: aprove, unpaid, paid",
+          args: [["pending", "approved", "rejected"]],
+          msg: "Status must be one of: pending, approved, rejected",
         },
       },
     },

@@ -40,6 +40,9 @@ BankAccount.init(
           msg:
             "Invalid SWIFT/BIC format. Must be 8 or 11 characters, uppercase letters and numbers only",
         },
+        notEmpty: {
+          msg: "SWIFT/BIC cannot be empty",
+        },
       },
     },
     iban: {
@@ -49,6 +52,9 @@ BankAccount.init(
         is: {
           args: /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$/,
           msg: "Invalid IBAN format",
+        },
+        notEmpty: {
+          msg: "IBAN cannot be empty",
         },
       },
     },
@@ -63,6 +69,9 @@ BankAccount.init(
         len: {
           args: [2, 100],
           msg: "Holder name must be between 2 and 100 characters",
+        },
+        notEmpty: {
+          msg: "Holder name cannot be empty",
         },
       },
     },

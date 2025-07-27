@@ -9,6 +9,12 @@ import logger from "../utils/logger.js";
  */
 const createBankAccount = async (accountData, managerId) => {
   try {
+    console.log(
+      "🔍 Creating bank account with data:",
+      JSON.stringify(accountData, null, 2)
+    );
+    console.log("👤 Manager ID:", managerId);
+
     // Check if manager exists and is active
     const manager = await User.findOne({
       where: { id: managerId, role: "manager", isActive: true },
@@ -19,6 +25,8 @@ const createBankAccount = async (accountData, managerId) => {
       error.status = 404;
       throw error;
     }
+
+    console.log("✅ Manager found:", manager.email);
 
     // Check if identifier is unique for this manager
     const existingAccount = await BankAccount.findOne({
@@ -31,14 +39,27 @@ const createBankAccount = async (accountData, managerId) => {
       throw error;
     }
 
+    console.log("✅ Identifier is unique");
+
     // Create bank account
+    console.log("📝 Attempting to create bank account...");
     const bankAccount = await BankAccount.create({
       ...accountData,
       managerId,
     });
 
+    console.log("✅ Bank account created successfully:", bankAccount.id);
     return bankAccount;
   } catch (error) {
+    console.error("❌ Failed to create bank account:");
+    console.error("Error message:", error.message);
+    console.error("Error name:", error.name);
+    console.error("Error stack:", error.stack);
+
+    if (error.name === "SequelizeValidationError") {
+      console.error("Validation errors:", error.errors);
+    }
+
     logger.error(`Failed to create bank account: ${error.message}`);
     throw error;
   }

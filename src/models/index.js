@@ -27,12 +27,17 @@ const syncModels = async () => {
     // Додайте це логування
     console.log("Models before sync:", Object.keys(sequelize.models));
 
-    // In development, you might want to use { force: true } to recreate tables
-    // In production, use { alter: true } or avoid sync and use migrations instead
-    await sequelize.sync({
-      force: process.env.NODE_ENV === "development",
+    // Use alter: true for development to preserve data, or no sync for production
+    // Only use force: true when you want to completely reset the database
+    const syncOptions = {
+      alter: false, // Disable alter to avoid unique constraint issues
+      force: process.env.FORCE_SYNC === "true", // Only force sync when explicitly set
       logging: console.log,
-    });
+    };
+
+    console.log("Sync options:", syncOptions);
+
+    await sequelize.sync(syncOptions);
     console.log("Models synchronized with database");
     const [results] = await sequelize.query(
       "SELECT name FROM sqlite_master WHERE type='table';"
