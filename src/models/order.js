@@ -56,8 +56,13 @@ Order.init(
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        isEmail: {
-          msg: "Invalid email format",
+        isEmailOrEmpty: function (value) {
+          if (value !== null && value !== "" && value !== undefined) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+              throw new Error("Invalid email format");
+            }
+          }
         },
       },
     },

@@ -147,6 +147,7 @@ const updateOrder = async (orderId, orderData, userId, userRole) => {
       "clientPhone",
       "clientEmail",
       "clientCountry",
+      "clientDocumentNumber",
       "countryTravel",
       "cityTravel",
       "propertyName",
@@ -189,6 +190,7 @@ const updateOrder = async (orderId, orderData, userId, userRole) => {
 
           order[field] = currentPayments;
         } else {
+          // Allow setting null or empty string to clear fields
           order[field] = orderData[field];
         }
       }
