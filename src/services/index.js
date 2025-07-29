@@ -27,7 +27,7 @@ import {
   updateBankAccount,
   deleteBankAccount,
   getBankAccounts,
-  getBankAccountByIdentifier,
+  getBankAccountById,
 } from "./bankAccountService.js";
 
 export {
@@ -56,5 +56,5 @@ export {
   updateBankAccount,
   deleteBankAccount,
   getBankAccounts,
-  getBankAccountByIdentifier,
+  getBankAccountById,
 };

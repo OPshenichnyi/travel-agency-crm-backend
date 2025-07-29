@@ -4,7 +4,6 @@ import {
   updateBankAccountController,
   deleteBankAccountController,
   getBankAccountsController,
-  getBankAccountByIdentifierController,
   getBankAccountByIdController,
 } from "../controllers/bankAccountController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
@@ -327,44 +326,5 @@ router.get("/", authenticate, getBankAccountsController);
  *         description: Server error
  */
 router.get("/:id", authenticate, getBankAccountByIdController);
-
-/**
- * @swagger
- * /bank-accounts/{identifier}:
- *   get:
- *     summary: Get bank account by identifier
- *     description: Get a specific bank account by its identifier
- *     tags: [Bank Accounts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: identifier
- *         required: true
- *         schema:
- *           type: string
- *         description: Bank account identifier
- *     responses:
- *       200:
- *         description: Bank account retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   $ref: '#/components/schemas/BankAccount'
- *       400:
- *         description: Invalid user role
- *       404:
- *         description: Bank account not found or agent not assigned to a manager
- *       500:
- *         description: Server error
- */
-router.get("/:identifier", authenticate, getBankAccountByIdentifierController);
 
 export default router;

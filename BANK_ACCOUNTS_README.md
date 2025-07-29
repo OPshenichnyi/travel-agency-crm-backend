@@ -135,14 +135,6 @@
 }
 ```
 
-### GET /api/bank-accounts/:identifier
-Отримання банківського рахунку за ідентифікатором (identifier)
-
-**Parameters:**
-- `identifier` (string) - Ідентифікатор банківського рахунку
-
-**Response:** (аналогічно GET /:id)
-
 ## Валідація полів
 
 ### bankName
@@ -231,16 +223,6 @@ const response = await axios.post('/api/bank-accounts', {
 ### Отримання рахунку за ID агентом для генерації ваучера
 ```javascript
 const response = await axios.get('/api/bank-accounts/1ac17a7e-272a-463d-ac4c-a216aad0f0ac', {
-  headers: { Authorization: `Bearer ${token}` }
-});
-
-const bankAccount = response.data.data;
-// Використовувати дані для генерації ваучера
-```
-
-### Отримання рахунку за ідентифікатором агентом для генерації ваучера
-```javascript
-const response = await axios.get('/api/bank-accounts/Мій рахунок 1', {
   headers: { Authorization: `Bearer ${token}` }
 });
 

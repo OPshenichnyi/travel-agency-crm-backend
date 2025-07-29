@@ -3,7 +3,6 @@ import {
   updateBankAccount,
   deleteBankAccount,
   getBankAccounts,
-  getBankAccountByIdentifier,
   getBankAccountById,
 } from "../services/bankAccountService.js";
 import logger from "../utils/logger.js";
@@ -143,36 +142,6 @@ const getBankAccountsController = async (req, res) => {
 };
 
 /**
- * Get bank account by identifier
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
-const getBankAccountByIdentifierController = async (req, res) => {
-  try {
-    const { identifier } = req.params;
-    const { id: userId, role } = req.user;
-
-    const bankAccount = await getBankAccountByIdentifier(
-      identifier,
-      userId,
-      role
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Bank account retrieved successfully",
-      data: bankAccount,
-    });
-  } catch (error) {
-    logger.error(`Get bank account by identifier error: ${error.message}`);
-    res.status(error.status || 500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-/**
  * Get bank account by ID
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -203,6 +172,5 @@ export {
   updateBankAccountController,
   deleteBankAccountController,
   getBankAccountsController,
-  getBankAccountByIdentifierController,
   getBankAccountByIdController,
 };
