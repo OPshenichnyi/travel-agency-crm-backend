@@ -4,6 +4,7 @@ import {
   deleteBankAccount,
   getBankAccounts,
   getBankAccountByIdentifier,
+  getBankAccountById,
 } from "../services/bankAccountService.js";
 import logger from "../utils/logger.js";
 
@@ -171,10 +172,37 @@ const getBankAccountByIdentifierController = async (req, res) => {
   }
 };
 
+/**
+ * Get bank account by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getBankAccountByIdController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { id: userId, role } = req.user;
+
+    const bankAccount = await getBankAccountById(id, userId, role);
+
+    res.status(200).json({
+      success: true,
+      message: "Bank account retrieved successfully",
+      data: bankAccount,
+    });
+  } catch (error) {
+    logger.error(`Get bank account by ID error: ${error.message}`);
+    res.status(error.status || 500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export {
   createBankAccountController,
   updateBankAccountController,
   deleteBankAccountController,
   getBankAccountsController,
   getBankAccountByIdentifierController,
+  getBankAccountByIdController,
 };

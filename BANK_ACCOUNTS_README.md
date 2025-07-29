@@ -103,10 +103,45 @@
 }
 ```
 
-### GET /api/bank-accounts/:identifier
-Отримання банківського рахунку за ідентифікатором
+### GET /api/bank-accounts/:id
+Отримання банківського рахунку за ID (UUID)
 
-**Response:** (аналогічно GET /api/bank-accounts, але повертає один об'єкт)
+**Parameters:**
+- `id` (UUID) - ID банківського рахунку
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Bank account retrieved successfully",
+  "data": {
+    "id": "uuid",
+    "managerId": "uuid",
+    "bankName": "ПриватБанк",
+    "swift": "PBANUA2X",
+    "iban": "UA123456789012345678901234567890",
+    "holderName": "Іван Петренко",
+    "address": "вул. Хрещатик, 1, Київ",
+    "identifier": "Мій рахунок 1",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "manager": {
+      "id": "uuid",
+      "email": "manager@example.com",
+      "firstName": "Іван",
+      "lastName": "Петренко"
+    }
+  }
+}
+```
+
+### GET /api/bank-accounts/:identifier
+Отримання банківського рахунку за ідентифікатором (identifier)
+
+**Parameters:**
+- `identifier` (string) - Ідентифікатор банківського рахунку
+
+**Response:** (аналогічно GET /:id)
 
 ## Валідація полів
 
@@ -193,7 +228,17 @@ const response = await axios.post('/api/bank-accounts', {
 });
 ```
 
-### Отримання рахунку агентом для генерації ваучера
+### Отримання рахунку за ID агентом для генерації ваучера
+```javascript
+const response = await axios.get('/api/bank-accounts/1ac17a7e-272a-463d-ac4c-a216aad0f0ac', {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+const bankAccount = response.data.data;
+// Використовувати дані для генерації ваучера
+```
+
+### Отримання рахунку за ідентифікатором агентом для генерації ваучера
 ```javascript
 const response = await axios.get('/api/bank-accounts/Мій рахунок 1', {
   headers: { Authorization: `Bearer ${token}` }

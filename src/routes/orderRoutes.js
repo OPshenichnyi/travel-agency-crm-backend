@@ -197,7 +197,18 @@ router.post(
     body("clientCountry").notEmpty().withMessage("Client country is required"),
     body("clientEmail")
       .optional()
-      .isEmail()
+      .custom((value) => {
+        // Allow null, empty string, or valid email
+        if (value === null || value === "") {
+          return true;
+        }
+        // If value is provided, it must be a valid email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          throw new Error("Valid client email is required if provided");
+        }
+        return true;
+      })
       .withMessage("Valid client email is required if provided"),
     body("clientDocumentNumber")
       .optional()

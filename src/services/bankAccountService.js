@@ -260,10 +260,67 @@ const getBankAccountByIdentifier = async (identifier, userId, userRole) => {
   }
 };
 
+/**
+ * Get bank account by ID
+ * @param {String} accountId - Bank account ID (UUID)
+ * @param {String} userId - User ID
+ * @param {String} userRole - User role
+ * @returns {Object} - Bank account
+ */
+const getBankAccountById = async (accountId, userId, userRole) => {
+  try {
+    let whereCondition = { id: accountId };
+
+    if (userRole === "manager") {
+      // Managers can see their own accounts
+      whereCondition.managerId = userId;
+    } else if (userRole === "agent") {
+      // Agents can see accounts of their manager
+      const agent = await User.findByPk(userId);
+      if (!agent || !agent.managerId) {
+        const error = new Error("Agent not found or not assigned to a manager");
+        error.status = 404;
+        throw error;
+      }
+      whereCondition.managerId = agent.managerId;
+    } else if (userRole === "admin") {
+      // Admin can see all accounts
+      // No additional conditions needed
+    } else {
+      const error = new Error("Invalid user role");
+      error.status = 400;
+      throw error;
+    }
+
+    const bankAccount = await BankAccount.findOne({
+      where: whereCondition,
+      include: [
+        {
+          model: User,
+          as: "manager",
+          attributes: ["id", "email", "firstName", "lastName"],
+        },
+      ],
+    });
+
+    if (!bankAccount) {
+      const error = new Error("Bank account not found");
+      error.status = 404;
+      throw error;
+    }
+
+    return bankAccount;
+  } catch (error) {
+    logger.error(`Failed to get bank account by ID: ${error.message}`);
+    throw error;
+  }
+};
+
 export {
   createBankAccount,
   updateBankAccount,
   deleteBankAccount,
   getBankAccounts,
   getBankAccountByIdentifier,
+  getBankAccountById,
 };
