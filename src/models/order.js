@@ -116,9 +116,65 @@ Order.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    payments: {
-      type: DataTypes.JSON, // Store payments info as JSON
-      allowNull: false,
+    // Deposit payment fields
+    depositAmount: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    depositStatus: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "unpaid",
+      validate: {
+        isIn: {
+          args: [["unpaid", "paid"]],
+          msg: "Deposit status must be unpaid or paid",
+        },
+      },
+    },
+    depositDueDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    depositPaidDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    depositPaymentMethods: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
+    // Balance payment fields
+    balanceAmount: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    balanceStatus: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "unpaid",
+      validate: {
+        isIn: {
+          args: [["unpaid", "paid"]],
+          msg: "Balance status must be unpaid or paid",
+        },
+      },
+    },
+    balanceDueDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    balancePaidDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    balancePaymentMethods: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
     },
     statusOrder: {
       type: DataTypes.STRING,
@@ -148,6 +204,14 @@ Order.init(
         // Set order ID if not provided
         if (!order.id) {
           order.id = uuidv4();
+        }
+
+        // Set default payment statuses
+        if (!order.depositStatus) {
+          order.depositStatus = "unpaid";
+        }
+        if (!order.balanceStatus) {
+          order.balanceStatus = "unpaid";
         }
       },
     },

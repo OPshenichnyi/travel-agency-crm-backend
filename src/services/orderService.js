@@ -1,6 +1,7 @@
 import { Order, User } from "../models/index.js";
 import { Op } from "sequelize";
 import logger from "../utils/logger.js";
+import sequelize from "../config/database.js";
 
 /**
  * Create a new order
@@ -162,39 +163,40 @@ const updateOrder = async (orderId, orderData, userId, userRole) => {
 
     // For non-agent users, add status fields to allowed fields
     if (userRole !== "agent") {
-      allowedFields.push("statusOrder", "payments");
+      allowedFields.push(
+        "statusOrder",
+        "depositStatus",
+        "depositPaidDate",
+        "balanceStatus",
+        "balancePaidDate"
+      );
     }
 
     // Apply updates
     allowedFields.forEach((field) => {
       if (orderData[field] !== undefined) {
-        // For payments, we need to merge existing data with new data
-        if (field === "payments" && orderData[field]) {
-          const currentPayments = order.payments || {};
-
-          // Merge deposit data
-          if (orderData.payments.deposit) {
-            currentPayments.deposit = {
-              ...currentPayments.deposit,
-              ...orderData.payments.deposit,
-            };
-          }
-
-          // Merge balance data
-          if (orderData.payments.balance) {
-            currentPayments.balance = {
-              ...currentPayments.balance,
-              ...orderData.payments.balance,
-            };
-          }
-
-          order[field] = currentPayments;
-        } else {
-          // Allow setting null or empty string to clear fields
-          order[field] = orderData[field];
-        }
+        order[field] = orderData[field];
       }
     });
+
+    // Handle payment status updates with paidDate
+    if (userRole !== "agent") {
+      // Update deposit status
+      if (orderData.depositStatus) {
+        order.depositStatus = orderData.depositStatus;
+        if (orderData.depositStatus === "paid" && !order.depositPaidDate) {
+          order.depositPaidDate = new Date().toISOString().split("T")[0];
+        }
+      }
+
+      // Update balance status
+      if (orderData.balanceStatus) {
+        order.balanceStatus = orderData.balanceStatus;
+        if (orderData.balanceStatus === "paid" && !order.balancePaidDate) {
+          order.balancePaidDate = new Date().toISOString().split("T")[0];
+        }
+      }
+    }
 
     // Calculate total price if price components have changed
     if (

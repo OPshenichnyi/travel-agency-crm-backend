@@ -46,7 +46,6 @@ router.use(authenticate);
  *               - clientCountry
  *               - guests
  *               - officialPrice
- *               - payments
  *             properties:
  *               agentId:
  *                 type: string
@@ -117,40 +116,40 @@ router.use(authenticate);
  *               bankAccount:
  *                 type: string
  *                 description: Банківський рахунок для оплати
- *               payments:
- *                 type: object
- *                 description: Інформація про оплати
- *                 properties:
- *                   deposit:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: number
- *                       status:
- *                         type: string
- *                       dueDate:
- *                         type: string
- *                       paidDate:
- *                         type: string
- *                       paymentMethods:
- *                         type: array
- *                         items:
- *                           type: string
- *                   balance:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: number
- *                       status:
- *                         type: string
- *                       dueDate:
- *                         type: string
- *                       paidDate:
- *                         type: string
- *                       paymentMethods:
- *                         type: array
- *                         items:
- *                           type: string
+ *               depositAmount:
+ *                 type: number
+ *                 description: Сума депозиту
+ *               depositStatus:
+ *                 type: string
+ *                 enum: [unpaid, paid]
+ *                 default: unpaid
+ *                 description: Статус оплати депозиту
+ *               depositDueDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата оплати депозиту
+ *               depositPaymentMethods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Методи оплати депозиту
+ *               balanceAmount:
+ *                 type: number
+ *                 description: Сума балансу
+ *               balanceStatus:
+ *                 type: string
+ *                 enum: [unpaid, paid]
+ *                 default: unpaid
+ *                 description: Статус оплати балансу
+ *               balanceDueDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата оплати балансу
+ *               balancePaymentMethods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Методи оплати балансу
  *     responses:
  *       201:
  *         description: Замовлення успішно створено
@@ -230,7 +229,38 @@ router.post(
       .optional()
       .isString()
       .withMessage("Bank account must be a string"),
-    body("payments").isObject().withMessage("Payments information is required"),
+    body("depositAmount")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Deposit amount must be a positive number if provided"),
+    body("depositStatus")
+      .optional()
+      .isIn(["unpaid", "paid"])
+      .withMessage("Deposit status must be one of: unpaid, paid"),
+    body("depositDueDate")
+      .optional()
+      .isDate()
+      .withMessage("Deposit due date must be a valid date if provided"),
+    body("depositPaymentMethods")
+      .optional()
+      .isArray()
+      .withMessage("Deposit payment methods must be an array if provided"),
+    body("balanceAmount")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Balance amount must be a positive number if provided"),
+    body("balanceStatus")
+      .optional()
+      .isIn(["unpaid", "paid"])
+      .withMessage("Balance status must be one of: unpaid, paid"),
+    body("balanceDueDate")
+      .optional()
+      .isDate()
+      .withMessage("Balance due date must be a valid date if provided"),
+    body("balancePaymentMethods")
+      .optional()
+      .isArray()
+      .withMessage("Balance payment methods must be an array if provided"),
 
     // Check if admin/manager is creating an order for an agent
     (req, res, next) => {
@@ -380,7 +410,7 @@ router.get(
  * /orders/{id}:
  *   put:
  *     summary: Оновлення замовлення
- *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси.
+ *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси замовлення та оплат. При зміні статусу оплати на "paid" автоматично встановлюється дата оплати.
  *     tags: [Замовлення]
  *     security:
  *       - bearerAuth: []
@@ -464,40 +494,40 @@ router.get(
  *               bankAccount:
  *                 type: string
  *                 description: Банківський рахунок для оплати
- *               payments:
- *                 type: object
- *                 description: Інформація про оплати
- *                 properties:
- *                   deposit:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: number
- *                       status:
- *                         type: string
- *                       dueDate:
- *                         type: string
- *                       paidDate:
- *                         type: string
- *                       paymentMethods:
- *                         type: array
- *                         items:
- *                           type: string
- *                   balance:
- *                     type: object
- *                     properties:
- *                       amount:
- *                         type: number
- *                       status:
- *                         type: string
- *                       dueDate:
- *                         type: string
- *                       paidDate:
- *                         type: string
- *                       paymentMethods:
- *                         type: array
- *                         items:
- *                           type: string
+ *               depositAmount:
+ *                 type: number
+ *                 description: Сума депозиту
+ *               depositStatus:
+ *                 type: string
+ *                 enum: [unpaid, paid]
+ *                 default: unpaid
+ *                 description: Статус оплати депозиту
+ *               depositDueDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата оплати депозиту
+ *               depositPaymentMethods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Методи оплати депозиту
+ *               balanceAmount:
+ *                 type: number
+ *                 description: Сума балансу
+ *               balanceStatus:
+ *                 type: string
+ *                 enum: [unpaid, paid]
+ *                 default: unpaid
+ *                 description: Статус оплати балансу
+ *               balanceDueDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата оплати балансу
+ *               balancePaymentMethods:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Методи оплати балансу
  *               statusOrder:
  *                 type: string
  *                 enum: [pending, approved, rejected]
@@ -621,10 +651,38 @@ router.put(
       .optional()
       .isString()
       .withMessage("Bank account must be a string if provided"),
-    body("payments")
+    body("depositAmount")
       .optional()
-      .isObject()
-      .withMessage("Payments information must be an object if provided"),
+      .isFloat({ min: 0 })
+      .withMessage("Deposit amount must be a positive number if provided"),
+    body("depositStatus")
+      .optional()
+      .isIn(["unpaid", "paid"])
+      .withMessage("Deposit status must be one of: unpaid, paid"),
+    body("depositDueDate")
+      .optional()
+      .isDate()
+      .withMessage("Deposit due date must be a valid date if provided"),
+    body("depositPaymentMethods")
+      .optional()
+      .isArray()
+      .withMessage("Deposit payment methods must be an array if provided"),
+    body("balanceAmount")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Balance amount must be a positive number if provided"),
+    body("balanceStatus")
+      .optional()
+      .isIn(["unpaid", "paid"])
+      .withMessage("Balance status must be one of: unpaid, paid"),
+    body("balanceDueDate")
+      .optional()
+      .isDate()
+      .withMessage("Balance due date must be a valid date if provided"),
+    body("balancePaymentMethods")
+      .optional()
+      .isArray()
+      .withMessage("Balance payment methods must be an array if provided"),
     body("statusOrder")
       .optional()
       .isIn(["pending", "approved", "rejected"])
@@ -637,8 +695,17 @@ router.put(
         return true;
       }),
 
-    // Custom validator for payment status
-    body("payments.*.status")
+    // Custom validator for payment statuses
+    body("depositStatus")
+      .optional()
+      .custom((value, { req }) => {
+        // Only admin and manager can change payment status
+        if (req.user.role === "agent") {
+          throw new Error("Agents cannot change payment status");
+        }
+        return true;
+      }),
+    body("balanceStatus")
       .optional()
       .custom((value, { req }) => {
         // Only admin and manager can change payment status
