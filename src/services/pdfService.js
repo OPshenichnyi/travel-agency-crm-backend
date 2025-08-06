@@ -22,8 +22,8 @@ class PDFService {
 
         // Header
         doc
-          .fontSize(14)
-          .font("Helvetica")
+          .fontSize(11)
+          .font("Helvetica-Bold")
           .text(
             `We are pleased to confirm your reservation made on ${format(
               new Date(order.createdOrder),
@@ -31,17 +31,14 @@ class PDFService {
             )}`,
             { align: "left" }
           );
-
-        doc.moveDown(1);
+        doc.moveDown(0.5);
         doc
-          .fontSize(14)
+          .fontSize(11)
           .font("Helvetica-Bold")
           .text("Here are the details of your reservation:", {
             align: "left",
           });
-
-        doc.moveDown(2);
-
+        doc.moveDown(0.5);
         // Reservation Details Section
         doc.fontSize(11).font("Helvetica");
 
@@ -99,12 +96,7 @@ class PDFService {
           addField("Client Phone:", `(W) ${order.clientPhone.join(", ")}`);
         }
 
-        doc.moveDown(1);
-
         // Financial Information Section
-        doc.fontSize(12).font("Helvetica-Bold").text("FINANCIAL INFORMATION");
-
-        doc.moveDown(0.5);
         doc.fontSize(11).font("Helvetica");
 
         const taxAmount = order.taxClean || 0;
@@ -119,13 +111,8 @@ class PDFService {
 
         addField("Cash on check-in:", `${order.balanceAmount || 0}€`);
 
-        doc.moveDown(1);
-
         // Bank Details Section
         if (order.bankAccount) {
-          doc.fontSize(12).font("Helvetica-Bold").text("BANK DETAILS");
-
-          doc.moveDown(0.5);
           doc.fontSize(11).font("Helvetica");
 
           try {
