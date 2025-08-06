@@ -1,4 +1,4 @@
-feat: add PDF voucher generation endpoint
+feat: add PDF voucher generation endpoint with updated format
 
 - Add PDFKit dependency for PDF generation
 - Create PDFService for voucher generation with structured layout
@@ -6,12 +6,14 @@ feat: add PDF voucher generation endpoint
 - Add new route GET /api/orders/{orderId}/voucher
 - Implement authorization checks (agents can only access own orders)
 - Add status validation (only approved orders can generate vouchers)
-- Include comprehensive PDF layout with:
-  - Header with company name and reservation date
-  - Reservation details (check-in/out, property, client info)
-  - Financial information (prices, taxes, balance)
-  - Bank account details (if available)
-  - Important information (deposit rules, check-in times, quiet hours)
+- Update PDF layout to match real voucher format:
+  - Header with reservation confirmation date
+  - Reservation details section with proper formatting
+  - Financial information with tax calculations
+  - Bank details section with holder and address info
+  - Deposit and payment notes with red highlighting
+  - General rules and policies section
+  - Personal data protection declaration
 - Add proper error responses (404, 403, 500)
 - Include logging for all voucher generation requests
 - Add Swagger documentation for the new endpoint
@@ -21,4 +23,6 @@ Technical details:
 - Uses date-fns for date formatting
 - Validates required fields before generation
 - Returns PDF as downloadable file with proper headers
-- Supports both string and JSON bank account formats 
+- Supports both string and JSON bank account formats
+- Implements red color highlighting for important information
+- Follows exact layout structure from real voucher example 
