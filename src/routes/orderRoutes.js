@@ -6,6 +6,7 @@ import {
   updateOrderController,
   getOrdersController,
 } from "../controllers/orderController.js";
+import { generateVoucherController } from "../controllers/voucherController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import { checkRole } from "../middleware/roleMiddleware.js";
 import { validate } from "../middleware/validationMiddleware.js";
@@ -410,7 +411,7 @@ router.get(
  * /orders/{id}:
  *   put:
  *     summary: Оновлення замовлення
- *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси замовлення та оплат. При зміні статусу оплати на "paid" автоматично встановлюється дата оплати.
+ *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси замовлення та оплат. Агенти можуть редагувати суми депозиту та балансу тільки до того, як менеджер встановить відповідний статус оплати як "paid". При зміні статусу оплати на "paid" автоматично встановлюється дата оплати.
  *     tags: [Замовлення]
  *     security:
  *       - bearerAuth: []
@@ -718,6 +719,68 @@ router.put(
     validate,
   ],
   updateOrderController
+);
+
+/**
+ * @swagger
+ * /orders/{orderId}/voucher:
+ *   get:
+ *     summary: Генерація PDF ваучера
+ *     description: Генерує PDF ваучер для замовлення. Доступно тільки для затверджених замовлень.
+ *     tags: [Замовлення]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID замовлення
+ *     responses:
+ *       200:
+ *         description: PDF ваучер успішно згенерований
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       403:
+ *         description: Немає дозволу або статус не "approved"
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: Замовлення не знайдено
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Помилка генерації PDF
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+router.get(
+  "/:orderId/voucher",
+  [
+    param("orderId").isUUID().withMessage("Valid order ID is required"),
+    validate,
+  ],
+  generateVoucherController
 );
 
 export default router;

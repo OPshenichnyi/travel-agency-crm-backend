@@ -1,47 +1,24 @@
-fix: Resolve authentication issues and improve password handling
+feat: add PDF voucher generation endpoint
 
-Changes made:
-- Remove duplicate password hashing in adminService
-- Centralize password hashing logic in User model hooks
-- Add comprehensive logging for authentication flow
+- Add PDFKit dependency for PDF generation
+- Create PDFService for voucher generation with structured layout
+- Add voucherController with validation and error handling
+- Add new route GET /api/orders/{orderId}/voucher
+- Implement authorization checks (agents can only access own orders)
+- Add status validation (only approved orders can generate vouchers)
+- Include comprehensive PDF layout with:
+  - Header with company name and reservation date
+  - Reservation details (check-in/out, property, client info)
+  - Financial information (prices, taxes, balance)
+  - Bank account details (if available)
+  - Important information (deposit rules, check-in times, quiet hours)
+- Add proper error responses (404, 403, 500)
+- Include logging for all voucher generation requests
+- Add Swagger documentation for the new endpoint
 
-Details:
-1. Password Management:
-   - Remove bcrypt hashing from adminService.js
-   - Keep password hashing only in User model hooks
-   - Fix double hashing issue that caused login failures
-
-2. Logging Improvements:
-   - Add detailed logging in authController for request tracking
-   - Implement password comparison logging in User model
-   - Add admin registration process logging
-
-3. Code Organization:
-   - Centralize password handling logic in User model
-   - Improve code maintainability and security
-   - Follow single responsibility principle for password hashing
-
-This fix resolves the authentication issues where users could not log in
-after registration due to double password hashing.
-
-docs: Improve authentication service documentation
-
-Changes made:
-- Add comprehensive JSDoc documentation to authService.js
-- Improve code readability with better step descriptions
-- Add detailed module description and function documentation
-
-Details:
-1. Documentation Improvements:
-   - Add module-level documentation for authService
-   - Document all steps in the login process
-   - Add detailed parameter and return type descriptions
-   - Include error handling documentation
-
-2. Code Organization:
-   - Restructure comments to better describe each step
-   - Improve logging messages clarity
-   - Make the authentication flow more transparent
-
-These changes improve code maintainability and make it easier for
-new developers to understand the authentication process. 
+Technical details:
+- Uses PDFKit for PDF generation
+- Uses date-fns for date formatting
+- Validates required fields before generation
+- Returns PDF as downloadable file with proper headers
+- Supports both string and JSON bank account formats 
