@@ -45,9 +45,13 @@ class PDFService {
         doc.fontSize(11).font("Helvetica");
 
         // Helper function to add label-value pairs with proper spacing
-        const addField = (label, value, isRed = false) => {
+        const addField = (label, value, isRed = false, isBold = true) => {
           // Add label and value on the same line
-          doc.font("Helvetica-Bold").text(label, { continued: true });
+          if (isBold) {
+            doc.font("Helvetica-Bold").text(label, { continued: true });
+          } else {
+            doc.font("Helvetica").text(label, { continued: true });
+          }
           doc.font("Helvetica").text(" ", { continued: true });
           if (isRed) doc.fillColor("red");
           doc.text(value);
@@ -158,19 +162,24 @@ class PDFService {
             );
 
             if (bankAccount.bankName) {
-              addField("Bank Name:", `${bankAccount.bankName}`);
+              addField("Bank Name:", `${bankAccount.bankName}`, false, false);
             }
             if (bankAccount.swift) {
-              addField("Swift &Bic:", `${bankAccount.swift}`);
+              addField("Swift &Bic:", `${bankAccount.swift}`, false, false);
             }
             if (bankAccount.iban) {
-              addField("IBAN:", `${bankAccount.iban}`);
+              addField("IBAN:", `${bankAccount.iban}`, false, false);
             }
             if (bankAccount.holderName) {
-              addField("Holder (Beneficiar):", `${bankAccount.holderName}`);
+              addField(
+                "Holder (Beneficiar):",
+                `${bankAccount.holderName}`,
+                false,
+                false
+              );
             }
             if (bankAccount.address) {
-              addField("Address:", `${bankAccount.address}`);
+              addField("Address:", `${bankAccount.address}`, false, false);
             }
           } catch (e) {
             console.log("Error getting bank account data:", e.message);
@@ -208,7 +217,7 @@ class PDFService {
 
         // Deposit and Payment Notes
         doc
-          .fontSize(11)
+          .fontSize(8)
           .font("Helvetica")
           .text(
             "With deposit within three working days the reservation will be confirmed. If there is a delay in payment, please inform us; otherwise, the reservation will be canceled. Deposit is refundable before 60 days till your arrival and non-refundable after 59 days till your arrival."
@@ -234,7 +243,7 @@ class PDFService {
           .text("GENERAL RULES AND POLICIES:");
 
         doc.moveDown(0.5);
-        doc.fontSize(10).font("Helvetica");
+        doc.fontSize(8).font("Helvetica");
 
         doc.text(
           '• In your payment it is including all government taxes and commissions of intermediaries between you "Guest" who make a reservation and your vacation rental property in Greece.'
@@ -253,14 +262,14 @@ class PDFService {
 
         // Personal Data Protection Section
         doc
-          .fontSize(11)
+          .fontSize(10)
           .font("Helvetica-Bold")
           .text(
             "PERSONAL DATA PROTECTION DECLARATION - SECURITY & PRIVACY POLICY"
           );
 
         doc.moveDown(0.5);
-        doc.fontSize(10).font("Helvetica");
+        doc.fontSize(8).font("Helvetica");
 
         doc.text(
           "• We wish to hereby inform you that our company complies with the protection framework for natural persons with regard to the processing of personal data, as established by the new Regulation (EU) 2016/679 of the European Parliament."
