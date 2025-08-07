@@ -11,16 +11,16 @@ import { validate } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
-// Всі маршрути потребують автентифікації
+// All routes require authentication
 router.use(authenticate);
 
 /**
  * @swagger
  * /invitations:
  *   post:
- *     summary: Створення запрошення для нового користувача
- *     description: Дозволяє адміністратору створити запрошення для менеджера, або менеджеру створити запрошення для агента
- *     tags: [Запрошення]
+ *     summary: Create an invitation for a new user
+ *     description: Allows the administrator to create an invitation for a manager, or a manager to create an invitation for an agent
+ *     tags: [Invitations]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -36,14 +36,14 @@ router.use(authenticate);
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Email для запрошення
+ *                 description: Email for the invitation
  *               role:
  *                 type: string
  *                 enum: [manager, agent]
- *                 description: Роль для запрошеного користувача
+ *                 description: Role for the invited user
  *     responses:
  *       201:
- *         description: Запрошення успішно створено
+ *         description: Invitation created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -55,28 +55,28 @@ router.use(authenticate);
  *                 invitation:
  *                   $ref: '#/components/schemas/Invitation'
  *       400:
- *         description: Неправильні дані запиту
+ *         description: Invalid request data
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  *       409:
- *         description: Користувач з цим email вже існує або активне запрошення вже існує
+ *         description: User with this email already exists or an active invitation already exists
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.post(
   "/",
   [
-    // Валідація даних
+    // Validate data
     body("email").isEmail().withMessage("Please provide a valid email"),
     body("role")
       .isIn(["manager", "agent"])
       .withMessage("Role must be either manager or agent"),
 
-    // Перевірка прав доступу:
-    // Тільки адміністратор може запрошувати менеджерів
-    // Адміністратори та менеджери можуть запрошувати агентів
+    // Check access rights:
+    // Only administrator can invite managers
+    // Administrators and managers can invite agents
     (req, res, next) => {
       const { role } = req.body;
       const userRole = req.user.role;
@@ -111,9 +111,9 @@ router.post(
  * @swagger
  * /invitations:
  *   get:
- *     summary: Отримання списку запрошень
- *     description: Отримує список запрошень. Адміністратор бачить всі запрошення, а менеджери - тільки створені ними.
- *     tags: [Запрошення]
+ *     summary: Get a list of invitations
+ *     description: Gets a list of invitations. The administrator sees all invitations, managers only see those they created.
+ *     tags: [Invitations]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -122,22 +122,22 @@ router.post(
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Номер сторінки
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Кількість елементів на сторінці
+ *         description: Number of items per page
  *       - in: query
  *         name: invitedBy
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID користувача, який створив запрошення (тільки для адміністратора)
+ *         description: ID of the user who created the invitation (only for administrator)
  *     responses:
  *       200:
- *         description: Список запрошень
+ *         description: List of invitations
  *         content:
  *           application/json:
  *             schema:
@@ -151,29 +151,29 @@ router.post(
  *                       id:
  *                         type: string
  *                         format: uuid
- *                         description: Унікальний ідентифікатор запрошення
+ *                         description: Unique invitation identifier
  *                       email:
  *                         type: string
  *                         format: email
- *                         description: Email, на який надіслано запрошення
+ *                         description: Email to which the invitation was sent
  *                       role:
  *                         type: string
  *                         enum: [manager, agent]
- *                         description: Роль для запрошеного користувача
+ *                         description: Role for the invited user
  *                       token:
  *                         type: string
- *                         description: Унікальний токен для реєстрації
+ *                         description: Unique token for registration
  *                       expiresAt:
  *                         type: string
  *                         format: date-time
- *                         description: Дата закінчення дії запрошення
+ *                         description: Invitation expiration date
  *                       used:
  *                         type: boolean
- *                         description: Чи було використано запрошення
+ *                         description: Whether the invitation was used
  *                       createdAt:
  *                         type: string
  *                         format: date-time
- *                         description: Дата створення запрошення
+ *                         description: Invitation creation date
  *                       inviter:
  *                         type: object
  *                         properties:
@@ -189,25 +189,25 @@ router.post(
  *                             type: string
  *                 total:
  *                   type: integer
- *                   description: Загальна кількість запрошень
+ *                   description: Total number of invitations
  *                 page:
  *                   type: integer
- *                   description: Поточна сторінка
+ *                   description: Current page
  *                 totalPages:
  *                   type: integer
- *                   description: Загальна кількість сторінок
+ *                   description: Total number of pages
  *                 limit:
  *                   type: integer
- *                   description: Кількість елементів на сторінці
+ *                   description: Number of items per page
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  */
 router.get(
   "/",
   [
-    // Валідація параметрів запиту
+    // Validate request parameters
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -229,9 +229,9 @@ router.get(
  * @swagger
  * /invitations/{id}:
  *   delete:
- *     summary: Скасування запрошення
- *     description: Скасовує запрошення. Адміністратор може скасувати будь-яке запрошення, менеджери - тільки створені ними.
- *     tags: [Запрошення]
+ *     summary: Cancel an invitation
+ *     description: Cancels an invitation. The administrator can cancel any invitation, managers only see those they created.
+ *     tags: [Invitations]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -241,10 +241,10 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID запрошення
+ *         description: Invitation ID
  *     responses:
  *       200:
- *         description: Запрошення успішно скасовано
+ *         description: Invitation cancelled successfully
  *         content:
  *           application/json:
  *             schema:
@@ -256,18 +256,18 @@ router.get(
  *                 id:
  *                   type: string
  *                   format: uuid
- *                   description: ID скасованого запрошення
+ *                   description: ID of the cancelled invitation
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  *       404:
- *         description: Запрошення не знайдено
+ *         description: Invitation not found
  */
 router.delete(
   "/:id",
   [
-    // Валідація параметрів
+    // Validate parameters
     param("id").isUUID(4).withMessage("Invalid invitation ID format"),
     validate,
   ],

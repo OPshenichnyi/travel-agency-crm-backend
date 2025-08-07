@@ -21,9 +21,9 @@ router.use(authenticate);
  * @swagger
  * /orders:
  *   post:
- *     summary: Створення нового замовлення
- *     description: Створює нове замовлення. Агенти можуть створювати замовлення тільки від свого імені.
- *     tags: [Замовлення]
+ *     summary: Create new order
+ *     description: Creates a new order. Agents can only create orders on their own behalf.
+ *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -51,109 +51,109 @@ router.use(authenticate);
  *               agentId:
  *                 type: string
  *                 format: uuid
- *                 description: ID агента (для менеджерів та адміністраторів)
+ *                 description: Agent ID (for managers and administrators)
  *               agentName:
  *                 type: string
- *                 description: Ім'я агента
+ *                 description: Agent name
  *               checkIn:
  *                 type: string
  *                 format: date
- *                 description: Дата заїзду
+ *                 description: Check-in date
  *               checkOut:
  *                 type: string
  *                 format: date
- *                 description: Дата виїзду
+ *                 description: Check-out date
  *               nights:
  *                 type: integer
- *                 description: Кількість ночей
+ *                 description: Number of nights
  *               countryTravel:
  *                 type: string
- *                 description: Країна подорожі
+ *                 description: Travel country
  *               cityTravel:
  *                 type: string
- *                 description: Місто подорожі
+ *                 description: Travel city
  *               propertyName:
  *                 type: string
- *                 description: Назва об'єкта розміщення
+ *                 description: Accommodation property name
  *               propertyNumber:
  *                 type: string
- *                 description: Номер об'єкта розміщення
+ *                 description: Property number
  *               reservationNumber:
  *                 type: string
- *                 description: Номер бронювання
+ *                 description: Reservation number
  *               clientName:
  *                 type: string
- *                 description: Ім'я клієнта
+ *                 description: Client name
  *               clientPhone:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Номери телефонів клієнта
+ *                 description: Client phone numbers
  *               clientEmail:
  *                 type: string
  *                 format: email
- *                 description: Email клієнта
+ *                 description: Client email
  *               clientCountry:
  *                 type: string
- *                 description: Країна клієнта
+ *                 description: Client country
  *               clientDocumentNumber:
  *                 type: string
- *                 description: Номер паспорта або іншого документа клієнта
+ *                 description: Client passport or document number
  *               guests:
  *                 type: object
- *                 description: Інформація про гостей
+ *                 description: Guest information
  *               officialPrice:
  *                 type: number
- *                 description: Офіційна ціна
+ *                 description: Official price
  *               taxClean:
  *                 type: number
- *                 description: Податок на прибирання
+ *                 description: Cleaning tax
  *               discount:
  *                 type: number
- *                 description: Знижка
+ *                 description: Discount
  *               totalPrice:
  *                 type: number
- *                 description: Загальна ціна
+ *                 description: Total price
  *               bankAccount:
  *                 type: string
- *                 description: Банківський рахунок для оплати
+ *                 description: Bank account for payment
  *               depositAmount:
  *                 type: number
- *                 description: Сума депозиту
+ *                 description: Deposit amount
  *               depositStatus:
  *                 type: string
  *                 enum: [unpaid, paid]
  *                 default: unpaid
- *                 description: Статус оплати депозиту
+ *                 description: Deposit payment status
  *               depositDueDate:
  *                 type: string
  *                 format: date
- *                 description: Дата оплати депозиту
+ *                 description: Deposit due date
  *               depositPaymentMethods:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Методи оплати депозиту
+ *                 description: Deposit payment methods
  *               balanceAmount:
  *                 type: number
- *                 description: Сума балансу
+ *                 description: Balance amount
  *               balanceStatus:
  *                 type: string
  *                 enum: [unpaid, paid]
  *                 default: unpaid
- *                 description: Статус оплати балансу
+ *                 description: Balance payment status
  *               balanceDueDate:
  *                 type: string
  *                 format: date
- *                 description: Дата оплати балансу
+ *                 description: Balance due date
  *               balancePaymentMethods:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Методи оплати балансу
+ *                 description: Balance payment methods
  *     responses:
  *       201:
- *         description: Замовлення успішно створено
+ *         description: Order created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -165,11 +165,11 @@ router.use(authenticate);
  *                 order:
  *                   type: object
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient permissions to perform operation
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.post(
   "/",
@@ -286,9 +286,9 @@ router.post(
  * @swagger
  * /orders:
  *   get:
- *     summary: Отримання списку замовлень
- *     description: Отримує список замовлень. Адміністратори бачать всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення.
- *     tags: [Замовлення]
+ *     summary: Get list of orders
+ *     description: Gets a list of orders. Administrators see all orders, managers only their agents' orders, agents only their own orders.
+ *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -297,27 +297,27 @@ router.post(
  *         schema:
  *           type: string
  *           enum: [pending, approved, rejected]
- *         description: Фільтр за статусом замовлення
+ *         description: Order status filter
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Пошук за ім'ям клієнта, країною/містом подорожі або email
+ *         description: Search by client name, country/city of travel, or email
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Номер сторінки
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Кількість елементів на сторінці
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: Список замовлень
+ *         description: List of orders
  *         content:
  *           application/json:
  *             schema:
@@ -329,18 +329,18 @@ router.post(
  *                     type: object
  *                 total:
  *                   type: integer
- *                   description: Загальна кількість замовлень
+ *                   description: Total number of orders
  *                 page:
  *                   type: integer
- *                   description: Поточна сторінка
+ *                   description: Current page
  *                 totalPages:
  *                   type: integer
- *                   description: Загальна кількість сторінок
+ *                   description: Total number of pages
  *                 limit:
  *                   type: integer
- *                   description: Кількість елементів на сторінці
+ *                   description: Number of items per page
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  */
 router.get(
   "/",
@@ -367,9 +367,9 @@ router.get(
  * @swagger
  * /orders/{id}:
  *   get:
- *     summary: Отримання замовлення за ID
- *     description: Отримує дані замовлення за його ID. Адміністратори бачать всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення.
- *     tags: [Замовлення]
+ *     summary: Get order by ID
+ *     description: Gets order data by its ID. Administrators see all orders, managers only their agents' orders, agents only their own orders.
+ *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -379,10 +379,10 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID замовлення
+ *         description: Order ID
  *     responses:
  *       200:
- *         description: Замовлення успішно отримано
+ *         description: Order fetched successfully
  *         content:
  *           application/json:
  *             schema:
@@ -394,11 +394,11 @@ router.get(
  *                 order:
  *                   type: object
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient permissions to perform operation
  *       404:
- *         description: Замовлення не знайдено
+ *         description: Order not found
  */
 router.get(
   "/:id",
@@ -410,9 +410,9 @@ router.get(
  * @swagger
  * /orders/{id}:
  *   put:
- *     summary: Оновлення замовлення
- *     description: Оновлює дані замовлення. Адміністратори можуть оновлювати всі замовлення, менеджери - тільки замовлення своїх агентів, агенти - тільки свої замовлення і не можуть змінювати статуси замовлення та оплат. Агенти можуть редагувати суми депозиту та балансу тільки до того, як менеджер встановить відповідний статус оплати як "paid". При зміні статусу оплати на "paid" автоматично встановлюється дата оплати.
- *     tags: [Замовлення]
+ *     summary: Update order
+ *     description: Updates order data. Administrators can update all orders, managers only their agents' orders, agents only their own orders and cannot change order statuses or payments. Agents can only edit deposit and balance amounts up to the point where the manager sets the corresponding payment status as "paid". When the payment status is changed to "paid", the payment date is automatically set.
+ *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -422,7 +422,7 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID замовлення
+ *         description: Order ID
  *     requestBody:
  *       required: true
  *       content:
@@ -432,110 +432,110 @@ router.get(
  *             properties:
  *               agentName:
  *                 type: string
- *                 description: Ім'я агента
+ *                 description: Agent name
  *               checkIn:
  *                 type: string
  *                 format: date
- *                 description: Дата заїзду
+ *                 description: Check-in date
  *               checkOut:
  *                 type: string
  *                 format: date
- *                 description: Дата виїзду
+ *                 description: Check-out date
  *               nights:
  *                 type: integer
- *                 description: Кількість ночей
+ *                 description: Number of nights
  *               countryTravel:
  *                 type: string
- *                 description: Країна подорожі
+ *                 description: Travel country
  *               cityTravel:
  *                 type: string
- *                 description: Місто подорожі
+ *                 description: Travel city
  *               propertyName:
  *                 type: string
- *                 description: Назва об'єкта розміщення
+ *                 description: Accommodation property name
  *               propertyNumber:
  *                 type: string
- *                 description: Номер об'єкта розміщення
+ *                 description: Property number
  *               reservationNumber:
  *                 type: string
- *                 description: Номер бронювання
+ *                 description: Reservation number
  *               clientName:
  *                 type: string
- *                 description: Ім'я клієнта
+ *                 description: Client name
  *               clientPhone:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Номери телефонів клієнта
+ *                 description: Client phone numbers
  *               clientEmail:
  *                 type: string
  *                 format: email
- *                 description: Email клієнта
+ *                 description: Client email
  *               clientCountry:
  *                 type: string
- *                 description: Країна клієнта
+ *                 description: Client country
  *               clientDocumentNumber:
  *                 type: string
- *                 description: Номер паспорта або іншого документа клієнта
+ *                 description: Client passport or document number
  *               guests:
  *                 type: object
- *                 description: Інформація про гостей
+ *                 description: Guest information
  *               officialPrice:
  *                 type: number
- *                 description: Офіційна ціна
+ *                 description: Official price
  *               taxClean:
  *                 type: number
- *                 description: Податок на прибирання
+ *                 description: Cleaning tax
  *               discount:
  *                 type: number
- *                 description: Знижка
+ *                 description: Discount
  *               totalPrice:
  *                 type: number
- *                 description: Загальна ціна
+ *                 description: Total price
  *               bankAccount:
  *                 type: string
- *                 description: Банківський рахунок для оплати
+ *                 description: Bank account for payment
  *               depositAmount:
  *                 type: number
- *                 description: Сума депозиту
+ *                 description: Deposit amount
  *               depositStatus:
  *                 type: string
  *                 enum: [unpaid, paid]
  *                 default: unpaid
- *                 description: Статус оплати депозиту
+ *                 description: Deposit payment status
  *               depositDueDate:
  *                 type: string
  *                 format: date
- *                 description: Дата оплати депозиту
+ *                 description: Deposit due date
  *               depositPaymentMethods:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Методи оплати депозиту
+ *                 description: Deposit payment methods
  *               balanceAmount:
  *                 type: number
- *                 description: Сума балансу
+ *                 description: Balance amount
  *               balanceStatus:
  *                 type: string
  *                 enum: [unpaid, paid]
  *                 default: unpaid
- *                 description: Статус оплати балансу
+ *                 description: Balance payment status
  *               balanceDueDate:
  *                 type: string
  *                 format: date
- *                 description: Дата оплати балансу
+ *                 description: Balance due date
  *               balancePaymentMethods:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Методи оплати балансу
+ *                 description: Balance payment methods
  *               statusOrder:
  *                 type: string
  *                 enum: [pending, approved, rejected]
- *                 description: Статус замовлення (тільки для адміністраторів і менеджерів)
+ *                 description: Order status (only for administrators and managers)
  *     responses:
  *       200:
- *         description: Замовлення успішно оновлено
+ *         description: Order updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -547,13 +547,13 @@ router.get(
  *                 order:
  *                   type: object
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient permissions to perform operation
  *       404:
- *         description: Замовлення не знайдено
+ *         description: Order not found
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.put(
   "/:id",
@@ -725,9 +725,9 @@ router.put(
  * @swagger
  * /orders/{orderId}/voucher:
  *   get:
- *     summary: Генерація PDF ваучера
- *     description: Генерує PDF ваучер для замовлення. Доступно тільки для затверджених замовлень.
- *     tags: [Замовлення]
+ *     summary: Generate voucher PDF
+ *     description: Generates a PDF voucher for an order. Available only for approved orders.
+ *     tags: [Orders]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -737,17 +737,17 @@ router.put(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID замовлення
+ *         description: Order ID
  *     responses:
  *       200:
- *         description: PDF ваучер успішно згенерований
+ *         description: PDF voucher generated successfully
  *         content:
  *           application/pdf:
  *             schema:
  *               type: string
  *               format: binary
  *       403:
- *         description: Немає дозволу або статус не "approved"
+ *         description: No permission or status is not "approved"
  *         content:
  *           application/json:
  *             schema:
@@ -756,7 +756,7 @@ router.put(
  *                 error:
  *                   type: string
  *       404:
- *         description: Замовлення не знайдено
+ *         description: Order not found
  *         content:
  *           application/json:
  *             schema:
@@ -765,7 +765,7 @@ router.put(
  *                 error:
  *                   type: string
  *       500:
- *         description: Помилка генерації PDF
+ *         description: PDF generation error
  *         content:
  *           application/json:
  *             schema:

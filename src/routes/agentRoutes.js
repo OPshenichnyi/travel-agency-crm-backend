@@ -12,19 +12,19 @@ import { validate } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
-// Всі маршрути потребують автентифікації
+// All routes require authentication
 router.use(authenticate);
 
-// Всі маршрути доступні тільки для менеджерів і адміністраторів
+// All routes available only for managers and administrators
 router.use(checkRole(["manager", "admin"]));
 
 /**
  * @swagger
  * /agents:
  *   get:
- *     summary: Отримання списку агентів
- *     description: Отримує список агентів. Для менеджерів показує тільки їхніх агентів, для адміністраторів - всіх агентів.
- *     tags: [Агенти]
+ *     summary: Get list of agents
+ *     description: Gets a list of agents. For managers, it shows only their agents, for administrators - all agents.
+ *     tags: [Agents]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -32,22 +32,22 @@ router.use(checkRole(["manager", "admin"]));
  *         name: search
  *         schema:
  *           type: string
- *         description: Пошук за email, ім'ям, прізвищем
+ *         description: Search by email, name, or last name
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Номер сторінки
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Кількість елементів на сторінці
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: Список агентів
+ *         description: List of agents
  *         content:
  *           application/json:
  *             schema:
@@ -59,25 +59,25 @@ router.use(checkRole(["manager", "admin"]));
  *                     $ref: '#/components/schemas/User'
  *                 total:
  *                   type: integer
- *                   description: Загальна кількість агентів
+ *                   description: Total number of agents
  *                 page:
  *                   type: integer
- *                   description: Поточна сторінка
+ *                   description: Current page
  *                 totalPages:
  *                   type: integer
- *                   description: Загальна кількість сторінок
+ *                   description: Total number of pages
  *                 limit:
  *                   type: integer
- *                   description: Кількість елементів на сторінці
+ *                   description: Number of items per page
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  */
 router.get(
   "/",
   [
-    // Валідація параметрів запиту
+    // Validate request parameters
     query("page")
       .optional()
       .isInt({ min: 1 })
@@ -95,9 +95,9 @@ router.get(
  * @swagger
  * /agents/{id}:
  *   put:
- *     summary: Оновлення даних агента
- *     description: Оновлює дані агента. Менеджери можуть редагувати тільки своїх агентів. Адміністратори можуть редагувати всіх агентів.
- *     tags: [Агенти]
+ *     summary: Update agent data
+ *     description: Updates agent data. Managers can only edit their agents. Administrators can edit all agents.
+ *     tags: [Agents]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -107,7 +107,7 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID агента
+ *         description: Agent ID
  *     requestBody:
  *       required: true
  *       content:
@@ -117,16 +117,16 @@ router.get(
  *             properties:
  *               firstName:
  *                 type: string
- *                 description: Ім'я агента
+ *                 description: Agent's first name
  *               lastName:
  *                 type: string
- *                 description: Прізвище агента
+ *                 description: Agent's last name
  *               phone:
  *                 type: string
- *                 description: Номер телефону агента
+ *                 description: Agent's phone number
  *     responses:
  *       200:
- *         description: Дані агента успішно оновлено
+ *         description: Agent data successfully updated
  *         content:
  *           application/json:
  *             schema:
@@ -138,21 +138,21 @@ router.get(
  *                 agent:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  *       404:
- *         description: Агента не знайдено
+ *         description: Agent not found
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.put(
   "/:id",
   [
-    // Валідація параметрів
+    // Validate parameters
     param("id").isUUID(4).withMessage("Invalid agent ID format"),
 
-    // Валідація даних
+    // Validate data
     body("firstName")
       .optional()
       .notEmpty()
@@ -174,9 +174,9 @@ router.put(
  * @swagger
  * /agents/{id}/toggle-status:
  *   patch:
- *     summary: Активація/деактивація агента
- *     description: Змінює статус активності агента. Менеджери можуть змінювати статус тільки своїх агентів. Адміністратори можуть змінювати статус всіх агентів.
- *     tags: [Агенти]
+ *     summary: Activate/deactivate agent
+ *     description: Changes the agent's activity status. Managers can change the status only for their agents. Administrators can change the status for all agents.
+ *     tags: [Agents]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -186,7 +186,7 @@ router.put(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID агента
+ *         description: Agent ID
  *     requestBody:
  *       required: true
  *       content:
@@ -198,10 +198,10 @@ router.put(
  *             properties:
  *               isActive:
  *                 type: boolean
- *                 description: Новий статус активності
+ *                 description: New activity status
  *     responses:
  *       200:
- *         description: Статус агента змінено успішно
+ *         description: Agent status changed successfully
  *         content:
  *           application/json:
  *             schema:
@@ -213,16 +213,16 @@ router.put(
  *                 agent:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  *       404:
- *         description: Агента не знайдено
+ *         description: Agent not found
  */
 router.patch(
   "/:id/toggle-status",
   [
-    // Валідація параметрів
+    // Validate parameters
     param("id").isUUID(4).withMessage("Invalid agent ID format"),
     body("isActive")
       .isBoolean()
@@ -236,9 +236,9 @@ router.patch(
  * @swagger
  * /agents/{id}:
  *   get:
- *     summary: Отримання даних агента
- *     description: Отримує дані агента за його ID. Менеджери можуть бачити тільки своїх агентів. Адміністратори можуть бачити всіх агентів.
- *     tags: [Агенти]
+ *     summary: Get agent data
+ *     description: Gets agent data by its ID. Managers can see only their agents. Administrators can see all agents.
+ *     tags: [Agents]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -248,10 +248,10 @@ router.patch(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID агента
+ *         description: Agent ID
  *     responses:
  *       200:
- *         description: Дані агента успішно отримано
+ *         description: Agent data successfully fetched
  *         content:
  *           application/json:
  *             schema:
@@ -263,16 +263,16 @@ router.patch(
  *                 agent:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient rights to perform the operation
  *       404:
- *         description: Агента не знайдено
+ *         description: Agent not found
  */
 router.get(
   "/:id",
   [
-    // Валідація параметрів
+    // Validate parameters
     param("id").isUUID(4).withMessage("Invalid agent ID format"),
     validate,
   ],

@@ -38,7 +38,7 @@ User.init(
       },
     },
     role: {
-      type: DataTypes.STRING, // SQLite не підтримує ENUM
+      type: DataTypes.STRING, // SQLite doesn't support ENUM
       allowNull: false,
       validate: {
         isIn: {

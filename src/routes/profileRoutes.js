@@ -10,29 +10,29 @@ import { validate } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
-// Всі маршрути потребують автентифікації
+// All routes require authentication
 router.use(authenticate);
 
 /**
  * @swagger
  * /profile:
  *   get:
- *     summary: Отримання профілю користувача
- *     description: Отримує профіль поточного автентифікованого користувача
- *     tags: [Профіль]
+ *     summary: Get user profile
+ *     description: Gets the profile of the currently authenticated user
+ *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Профіль користувача
+ *         description: User profile
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       404:
- *         description: Користувача не знайдено
+ *         description: User not found
  */
 router.get("/", getUserProfileController);
 
@@ -40,9 +40,9 @@ router.get("/", getUserProfileController);
  * @swagger
  * /profile:
  *   put:
- *     summary: Оновлення профілю користувача
- *     description: Оновлює дані профілю поточного автентифікованого користувача
- *     tags: [Профіль]
+ *     summary: Update user profile
+ *     description: Updates the profile data of the currently authenticated user
+ *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -54,16 +54,16 @@ router.get("/", getUserProfileController);
  *             properties:
  *               firstName:
  *                 type: string
- *                 description: Ім'я користувача
+ *                 description: User's first name
  *               lastName:
  *                 type: string
- *                 description: Прізвище користувача
+ *                 description: User's last name
  *               phone:
  *                 type: string
- *                 description: Номер телефону користувача
+ *                 description: User's phone number
  *     responses:
  *       200:
- *         description: Профіль успішно оновлено
+ *         description: Profile updated successfully
  *         content:
  *           application/json:
  *             schema:
@@ -75,14 +75,14 @@ router.get("/", getUserProfileController);
  *                 user:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       422:
- *         description: Помилка валідації даних
+ *         description: Validation error
  */
 router.put(
   "/",
   [
-    // Валідація даних
+    // Validate data
     body("firstName")
       .optional()
       .notEmpty()
@@ -104,9 +104,9 @@ router.put(
  * @swagger
  * /profile/change-password:
  *   put:
- *     summary: Зміна паролю користувача
- *     description: Змінює пароль поточного автентифікованого користувача
- *     tags: [Профіль]
+ *     summary: Change user password
+ *     description: Changes the password of the currently authenticated user
+ *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -122,14 +122,14 @@ router.put(
  *               currentPassword:
  *                 type: string
  *                 format: password
- *                 description: Поточний пароль
+ *                 description: Current password
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 description: Новий пароль
+ *                 description: New password
  *     responses:
  *       200:
- *         description: Пароль успішно змінено
+ *         description: Password changed successfully
  *         content:
  *           application/json:
  *             schema:
@@ -139,16 +139,16 @@ router.put(
  *                   type: string
  *                   example: Password changed successfully
  *       400:
- *         description: Поточний пароль неправильний
+ *         description: Incorrect current password
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       422:
- *         description: Помилка валідації даних
+ *         description: Validation error
  */
 router.put(
   "/change-password",
   [
-    // Валідація даних
+    // Validate data
     body("currentPassword")
       .notEmpty()
       .withMessage("Current password is required"),

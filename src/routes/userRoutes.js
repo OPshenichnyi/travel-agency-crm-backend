@@ -10,16 +10,16 @@ import { validate } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
-// Всі маршрути потребують автентифікації
+// All routes require authentication
 router.use(authenticate);
 
 /**
  * @swagger
  * /users:
  *   get:
- *     summary: Отримання списку користувачів
- *     description: Отримує список всіх користувачів. Доступно тільки для адміністраторів.
- *     tags: [Користувачі]
+ *     summary: Get user list
+ *     description: Retrieves a list of all users. Only accessible by administrators.
+ *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -28,27 +28,27 @@ router.use(authenticate);
  *         schema:
  *           type: string
  *           enum: [admin, manager, agent]
- *         description: Фільтр за роллю
+ *         description: Filter by role
  *       - in: query
  *         name: search
  *         schema:
  *           type: string
- *         description: Пошук за email, ім'ям, прізвищем
+ *         description: Search by email, name, or surname
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Номер сторінки
+ *         description: Page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Кількість елементів на сторінці
+ *         description: Number of items per page
  *     responses:
  *       200:
- *         description: Список користувачів
+ *         description: User list
  *         content:
  *           application/json:
  *             schema:
@@ -60,28 +60,28 @@ router.use(authenticate);
  *                     $ref: '#/components/schemas/User'
  *                 total:
  *                   type: integer
- *                   description: Загальна кількість користувачів
+ *                   description: Total number of users
  *                 page:
  *                   type: integer
- *                   description: Поточна сторінка
+ *                   description: Current page
  *                 totalPages:
  *                   type: integer
- *                   description: Загальна кількість сторінок
+ *                   description: Total number of pages
  *                 limit:
  *                   type: integer
- *                   description: Кількість елементів на сторінці
+ *                   description: Number of items per page
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient permissions to perform operation
  */
 router.get(
   "/",
   [
-    // Тільки адміністратор може переглядати список користувачів
+    // Only administrator can view user list
     checkRole("admin"),
 
-    // Валідація параметрів запиту
+    // Validate request parameters
     query("role")
       .optional()
       .isIn(["admin", "manager", "agent"])
@@ -103,9 +103,9 @@ router.get(
  * @swagger
  * /users/{id}/toggle-status:
  *   patch:
- *     summary: Блокування/розблокування користувача
- *     description: Змінює статус активності користувача (блокує або розблоковує). Доступно тільки для адміністраторів.
- *     tags: [Користувачі]
+ *     summary: Toggle user status
+ *     description: Changes the user's activity status (blocks or unblocks). Only accessible by administrators.
+ *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -115,7 +115,7 @@ router.get(
  *         schema:
  *           type: string
  *           format: uuid
- *         description: ID користувача
+ *         description: User ID
  *     requestBody:
  *       required: true
  *       content:
@@ -127,10 +127,10 @@ router.get(
  *             properties:
  *               isActive:
  *                 type: boolean
- *                 description: Новий статус активності
+ *                 description: New activity status
  *     responses:
  *       200:
- *         description: Статус користувача змінено успішно
+ *         description: User status changed successfully
  *         content:
  *           application/json:
  *             schema:
@@ -142,19 +142,19 @@ router.get(
  *                 user:
  *                   $ref: '#/components/schemas/User'
  *       401:
- *         description: Необхідна автентифікація
+ *         description: Authentication required
  *       403:
- *         description: Недостатньо прав для виконання операції
+ *         description: Insufficient permissions to perform operation
  *       404:
- *         description: Користувача не знайдено
+ *         description: User not found
  */
 router.patch(
   "/:id/toggle-status",
   [
-    // Тільки адміністратор може змінювати статус користувача
+    // Only administrator can change user status
     checkRole("admin"),
 
-    // Валідація параметрів
+    // Validate parameters
     param("id").isUUID(4).withMessage("Invalid user ID format"),
     body("isActive")
       .isBoolean()

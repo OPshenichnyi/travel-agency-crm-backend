@@ -9,15 +9,15 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT, 10),
-  secure: process.env.SMTP_PORT === "465", // true для 465, false для інших портів
+  secure: process.env.SMTP_PORT === "465", // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  // Додаємо налаштування для розробки
+  // Add development settings
   ...(process.env.NODE_ENV === "development" && {
     tls: {
-      rejectUnauthorized: false, // В режимі розробки не перевіряємо сертифікати
+      rejectUnauthorized: false, // In development mode, don't verify certificates
     },
   }),
 });
@@ -78,7 +78,7 @@ const sendInvitation = async (
   } catch (error) {
     logger.error(`Failed to send invitation email: ${error.message}`);
 
-    // В режимі розробки просто логуємо помилку і продовжуємо роботу
+    // In development mode, just log error and continue
     if (process.env.NODE_ENV === "development") {
       logger.info("Email sending failed, but continuing in development mode");
       return { messageId: "dev-mode-no-email-sent" };
@@ -97,7 +97,7 @@ const verifyConnection = async () => {
       return result;
     }
 
-    // В режимі розробки виконуємо спробу перевірки, але не зупиняємо додаток при помилці
+    // In development mode, perform verification attempt but don't stop app on error
     try {
       const result = await transporter.verify();
       logger.info("SMTP connection verified successfully");

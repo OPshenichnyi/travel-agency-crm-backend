@@ -1,85 +1,69 @@
-# Database Management Guide
+# Database Configuration
 
-## Поточна конфігурація
+## Current Configuration
 
-Цей проект використовує **SQLite** базу даних для локальної розробки. Файл бази даних знаходиться в кореневій папці: `database.sqlite`
+The project uses SQLite database with the following settings:
+- Database file: `database.sqlite`
+- ORM: Sequelize
+- Connection pooling enabled
 
-## Проблема з перезаписом даних
+## Data Overwrite Issue
 
-**Проблема:** Раніше при кожному перезавантаженні сервера база даних повністю перезаписувалася, втрачаючи всі дані.
+When `FORCE_SYNC=true` is set in environment variables, the database is completely reset on each application restart, losing all data.
 
-**Рішення:** Змінено логіку синхронізації моделей в `src/models/index.js`:
+**Solution**: Use `FORCE_SYNC=false` for production and development with existing data.
 
-- **Раніше:** `force: true` при `NODE_ENV=development` (перезаписувало всі таблиці)
-- **Тепер:** `alter: true` при `NODE_ENV=development` (зберігає дані, оновлює структуру)
+## Database Commands
 
-## Команди для роботи з базою даних
-
-### Звичайний запуск (зберігає дані)
+### Normal startup (preserves data)
 ```bash
-npm run dev
-# або
 npm start
+# or
+FORCE_SYNC=false npm start
 ```
 
-### Повне скидання бази даних (ВНИМАНИЕ: втратить всі дані!)
+### Complete database reset (WARNING: will lose all data!)
 ```bash
-npm run reset-db
+FORCE_SYNC=true npm start
 ```
 
-### Створення адміністратора
+### Create administrator
 ```bash
-npm run reset-admin
+npm run create-admin
 ```
 
-### Скидання пароля користувача
+### Reset user password
 ```bash
 npm run reset-password
 ```
 
-## Змінні середовища
-
-Створіть файл `.env` в кореневій папці з наступними налаштуваннями:
+## Environment Variables
 
 ```env
-# Environment settings
-NODE_ENV=development
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=travel_agency_crm
+DB_USER=postgres
+DB_PASSWORD=password
 
-# Database settings
-# FORCE_SYNC=true  # Розкоментуйте ТІЛЬКИ коли хочете повністю скинути базу
-
-# Server settings
-PORT=3000
-
-# Email settings (якщо потрібно)
-# SMTP_HOST=
-# SMTP_PORT=
-# SMTP_USER=
-# SMTP_PASS=
+# Sync mode
+FORCE_SYNC=false  # Uncomment ONLY when you want to completely reset the database
 ```
 
-## Docker (PostgreSQL)
+## Database Structure
 
-Для використання PostgreSQL через Docker:
+The database includes the following main tables:
+- `users` - User accounts and profiles
+- `invitations` - User registration invitations
+- `orders` - Travel orders and bookings
+- `payments` - Payment records
+- `bank_accounts` - Bank account management
 
-```bash
-docker-compose up -d
-```
+## Migrations
 
-**Увага:** Docker конфігурація використовує PostgreSQL, а не SQLite. Якщо ви хочете використовувати SQLite з Docker, потрібно змінити конфігурацію.
+Database schema changes are handled through Sequelize migrations.
 
-## Структура бази даних
+## Logging
 
-Основні таблиці:
-- `Users` - користувачі системи
-- `Invitations` - запрошення
-- `Orders` - замовлення
-- `BankAccounts` - банківські рахунки
-
-## Міграції
-
-Для зміни структури бази даних використовуйте міграції в папці `src/migrations/`.
-
-## Логування
-
-Всі операції з базою даних логуються в консоль при `NODE_ENV=development`. 
+Database operations are logged in development mode for debugging purposes. 

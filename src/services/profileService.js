@@ -103,11 +103,11 @@ const changePassword = async (userId, currentPassword, newPassword) => {
       throw error;
     }
 
-    // Хешуємо пароль напряму через bcrypt
+    // Hash password directly through bcrypt
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Використовуємо метод update замість save для уникнення проблем з хуками
+    // Use update method instead of save to avoid hook issues
     await User.update({ password: hashedPassword }, { where: { id: userId } });
 
     return true;

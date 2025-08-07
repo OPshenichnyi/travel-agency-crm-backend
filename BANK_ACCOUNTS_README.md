@@ -1,250 +1,117 @@
-# Bank Accounts Management API
+# Bank Accounts Management
 
-Цей документ описує функціонал управління банківськими реквізитами в Travel Agency CRM.
+## Feature Description
 
-## Опис функціоналу
+The bank accounts management system allows managers to create and manage bank accounts for their agents. Agents can view their assigned accounts and generate vouchers for orders.
 
-Система дозволяє менеджерам створювати, редагувати та видаляти банківські рахунки, а агентам - переглядати та вибирати рахунки свого менеджера для генерації ваучерів.
+## Roles and Permissions
 
-## Ролі та права доступу
+### Manager
+- Create bank accounts for their agents
+- View all accounts assigned to their agents
+- Edit account details
+- Delete accounts (if not used in orders)
 
-### Менеджер
-- ✅ Створювати банківські рахунки
-- ✅ Редагувати свої банківські рахунки
-- ✅ Видаляти свої банківські рахунки
-- ✅ Переглядати свої банківські рахунки
+### Agent
+- View their assigned bank accounts
+- Generate vouchers using account information
+- Cannot create, edit, or delete accounts
 
-### Агент
-- ✅ Переглядати банківські рахунки свого менеджера
-- ✅ Вибирати рахунок за ідентифікатором для генерації ваучера
-- ❌ Створювати банківські рахунки
-- ❌ Редагувати банківські рахунки
-- ❌ Видаляти банківські рахунки
+### Admin
+- Full access to all bank accounts
+- Can manage accounts for any agent
+- Can view all system accounts
 
-### Адмін
-- ✅ Переглядати всі банківські рахунки
-- ❌ Створювати банківські рахунки
-- ❌ Редагувати банківські рахунки
-- ❌ Видаляти банківські рахунки
+## Field Validation
 
-## API Endpoints
+### Required Fields
+- `accountName` - Account name (string, 1-100 characters)
+- `accountNumber` - Account number (string, 1-50 characters)
+- `bankName` - Bank name (string, 1-100 characters)
+- `agentId` - Agent ID (UUID, must exist in users table)
 
-### POST /api/bank-accounts
-Створення нового банківського рахунку (тільки менеджер)
+### Optional Fields
+- `swiftCode` - SWIFT/BIC code (string, 8-11 characters)
+- `iban` - IBAN code (string, 15-34 characters)
+- `currency` - Currency code (string, 3 characters, default: "USD")
+- `notes` - Additional notes (string, max 500 characters)
 
-**Request Body:**
-```json
-{
-  "bankName": "ПриватБанк",
-  "swift": "PBANUA2X",
-  "iban": "UA123456789012345678901234567890",
-  "holderName": "Іван Петренко",
-  "address": "вул. Хрещатик, 1, Київ",
-  "identifier": "Мій рахунок 1"
-}
-```
+### Validation Rules
+- Account number must be unique per agent
+- Agent must exist and have role "agent"
+- Manager can only assign accounts to their agents
+- Currency must be valid ISO 4217 code
+- IBAN must be valid format if provided
+- SWIFT code must be valid format if provided
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Bank account created successfully",
-  "data": {
-    "id": "uuid",
-    "managerId": "uuid",
-    "bankName": "ПриватБанк",
-    "swift": "PBANUA2X",
-    "iban": "UA123456789012345678901234567890",
-    "holderName": "Іван Петренко",
-    "address": "вул. Хрещатик, 1, Київ",
-    "identifier": "Мій рахунок 1",
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  }
-}
-```
+## Database Structure
 
-### PUT /api/bank-accounts/:id
-Оновлення банківського рахунку (тільки менеджер)
+### Table: bank_accounts
 
-**Request Body:** (аналогічно POST)
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| accountName | STRING | Account name |
+| accountNumber | STRING | Account number |
+| bankName | STRING | Bank name |
+| swiftCode | STRING | SWIFT/BIC code |
+| iban | STRING | IBAN code |
+| currency | STRING | Currency code |
+| agentId | UUID | Foreign key to users table |
+| notes | TEXT | Additional notes |
+| createdAt | DATE | Creation timestamp |
+| updatedAt | DATE | Last update timestamp |
 
-### DELETE /api/bank-accounts/:id
-Видалення банківського рахунку (тільки менеджер)
+### Relationships
+- `agentId` references `users.id` (many-to-one)
+- `agentId` must have role "agent"
+- `agentId` must have `managerId` matching the creating manager
 
-### GET /api/bank-accounts
-Отримання списку банківських рахунків
+## Installation and Setup
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Bank accounts retrieved successfully",
-  "data": [
-    {
-      "id": "uuid",
-      "managerId": "uuid",
-      "bankName": "ПриватБанк",
-      "swift": "PBANUA2X",
-      "iban": "UA123456789012345678901234567890",
-      "holderName": "Іван Петренко",
-      "address": "вул. Хрещатик, 1, Київ",
-      "identifier": "Мій рахунок 1",
-      "createdAt": "2024-01-01T00:00:00.000Z",
-      "updatedAt": "2024-01-01T00:00:00.000Z",
-      "manager": {
-        "id": "uuid",
-        "email": "manager@example.com",
-        "firstName": "Іван",
-        "lastName": "Петренко"
-      }
-    }
-  ]
-}
-```
+1. Ensure database migrations are run
+2. Verify user roles are properly set up
+3. Test account creation with manager role
+4. Verify agent access restrictions
 
-### GET /api/bank-accounts/:id
-Отримання банківського рахунку за ID (UUID)
+## Usage Examples
 
-**Parameters:**
-- `id` (UUID) - ID банківського рахунку
+### Creating an account as a manager
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Bank account retrieved successfully",
-  "data": {
-    "id": "uuid",
-    "managerId": "uuid",
-    "bankName": "ПриватБанк",
-    "swift": "PBANUA2X",
-    "iban": "UA123456789012345678901234567890",
-    "holderName": "Іван Петренко",
-    "address": "вул. Хрещатик, 1, Київ",
-    "identifier": "Мій рахунок 1",
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z",
-    "manager": {
-      "id": "uuid",
-      "email": "manager@example.com",
-      "firstName": "Іван",
-      "lastName": "Петренко"
-    }
-  }
-}
-```
-
-## Валідація полів
-
-### bankName
-- Обов'язкове поле
-- Мінімум 3 символи
-- Максимум 100 символів
-- Не може бути порожнім
-
-### swift
-- Обов'язкове поле
-- Формат: 8 або 11 символів
-- Тільки великі літери та цифри
-- Приклад: `PBANUA2X` або `PBANUA2XXXX`
-
-### iban
-- Обов'язкове поле
-- Формат IBAN з перевіркою контрольної суми
-- Приклад: `UA123456789012345678901234567890`
-
-### holderName
-- Обов'язкове поле
-- Мінімум 2 символи
-- Максимум 100 символів
-- Тільки літери та пробіли (латиниця/кирилиця)
-
-### address
-- Опціональне поле
-- Максимум 200 символів
-- Дозволені символи: літери, цифри, пробіли, крапки, коми, дефіси, дужки
-
-### identifier
-- Обов'язкове поле
-- Мінімум 1 символ
-- Максимум 50 символів
-- Унікальний в межах одного менеджера
-- Приклад: "Мій рахунок 1", "Рахунок для виплат"
-
-## Структура бази даних
-
-### Таблиця: bank_accounts
-
-| Поле | Тип | Обов'язкове | Опис |
-|------|-----|-------------|------|
-| id | UUID | ✅ | Первинний ключ |
-| managerId | UUID | ✅ | Зовнішній ключ до users |
-| bankName | STRING | ✅ | Назва банку |
-| swift | STRING | ✅ | SWIFT/BIC код |
-| iban | STRING | ✅ | IBAN номер |
-| holderName | STRING | ✅ | Ім'я власника рахунку |
-| address | STRING | ❌ | Адреса |
-| identifier | STRING | ✅ | Унікальний ідентифікатор |
-| createdAt | DATETIME | ✅ | Дата створення |
-| updatedAt | DATETIME | ✅ | Дата оновлення |
-
-### Індекси
-- `unique_manager_identifier` - унікальний індекс на (managerId, identifier)
-
-## Встановлення та запуск
-
-### 1. Запуск міграції
-```bash
-node run-bank-accounts-migration.js
-```
-
-### 2. Тестування API
-```bash
-node test-bank-accounts.js
-```
-
-## Приклади використання
-
-### Створення рахунку менеджером
 ```javascript
-const response = await axios.post('/api/bank-accounts', {
-  bankName: 'ПриватБанк',
-  swift: 'PBANUA2X',
-  iban: 'UA123456789012345678901234567890',
-  holderName: 'Іван Петренко',
-  address: 'вул. Хрещатик, 1, Київ',
-  identifier: 'Мій рахунок 1'
-}, {
-  headers: { Authorization: `Bearer ${token}` }
-});
+const accountData = {
+  accountName: "Main Business Account",
+  accountNumber: "1234567890",
+  bankName: "Example Bank",
+  swiftCode: "EXBKUS33",
+  iban: "US12345678901234567890",
+  currency: "USD",
+  agentId: "agent-uuid-here",
+  notes: "Primary account for client payments"
+};
+
+const account = await createBankAccount(accountData, managerId);
 ```
 
-### Отримання рахунку за ID агентом для генерації ваучера
+### Getting account by ID as an agent for voucher generation
+
 ```javascript
-const response = await axios.get('/api/bank-accounts/1ac17a7e-272a-463d-ac4c-a216aad0f0ac', {
-  headers: { Authorization: `Bearer ${token}` }
-});
-
-const bankAccount = response.data.data;
-// Використовувати дані для генерації ваучера
+const account = await getBankAccountById(accountId, agentId);
+// Use account details to generate voucher
+const voucherData = {
+  accountName: account.accountName,
+  accountNumber: account.accountNumber,
+  bankName: account.bankName,
+  // ... other voucher fields
+};
 ```
 
-## Обробка помилок
+## Error Handling
 
-### 400 Bad Request
-- Невірний формат IBAN
-- Невірний формат SWIFT
-- Ідентифікатор не унікальний для менеджера
-- Помилки валідації полів
-
-### 403 Forbidden
-- Спроба створення/редагування/видалення рахунку не менеджером
-- Спроба доступу до чужого рахунку
-
-### 404 Not Found
-- Рахунок не знайдено
-- Агент не призначений до менеджера
-
-### 422 Unprocessable Entity
-- Помилки валідації вхідних даних 
+The system includes comprehensive error handling for:
+- Invalid account data
+- Unauthorized access attempts
+- Non-existent agents
+- Duplicate account numbers
+- Invalid currency codes
+- Database connection issues 

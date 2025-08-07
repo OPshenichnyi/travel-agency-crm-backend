@@ -24,7 +24,7 @@ const syncModels = async () => {
     await sequelize.authenticate();
     console.log("Database connection established successfully");
 
-    // Додайте це логування
+    // Add this logging
     console.log("Models before sync:", Object.keys(sequelize.models));
 
     // Use alter: true for development to preserve data, or no sync for production
@@ -48,7 +48,7 @@ const syncModels = async () => {
     );
   } catch (error) {
     console.error("Unable to connect to the database:", error);
-    // Додайте детальний вивід помилки
+    // Add detailed error output
     console.error("Error details:", error.stack);
     throw error;
   }

@@ -1,16 +1,18 @@
 # Travel Agency CRM
 
-Бекенд для CRM-системи туристичної агенції з можливістю реєстрації менеджерів і агентів.
+A comprehensive CRM system for travel agencies with user management, order processing, and financial tracking.
 
-## Технічний стек
+## Technical Stack
 
-- Node.js (v22.11.0)
-- Express.js
-- PostgreSQL
-- Sequelize ORM
-- JWT для автентифікації
-- Docker і Docker Compose
+- **Backend**: Node.js, Express.js, Sequelize ORM
+- **Database**: SQLite
+- **Authentication**: JWT
+- **Documentation**: Swagger/OpenAPI
+- **Testing**: Jest
 
-## Встановлення та запуск
+## Installation and Setup
 
-Інструкції з встановлення та запуску проекту будуть додані пізніше.
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables
+4. Run the application: `npm start`

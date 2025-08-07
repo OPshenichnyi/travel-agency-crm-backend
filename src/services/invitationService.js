@@ -16,7 +16,7 @@ import logger from "../utils/logger.js";
 const createInvitation = async (data) => {
   const { email, role, invitedBy } = data;
 
-  // Перевіряємо, чи користувач з цим email вже існує
+  // Check if user with this email already exists
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
     const error = new Error("User with this email already exists");
@@ -24,13 +24,13 @@ const createInvitation = async (data) => {
     throw error;
   }
 
-  // Перевіряємо, чи активне запрошення для цього email вже існує
+  // Check if active invitation for this email already exists
   const existingInvitation = await Invitation.findOne({
     where: {
       email,
       used: false,
       expiresAt: {
-        [Sequelize.Op.gt]: new Date(), // не прострочене
+        [Sequelize.Op.gt]: new Date(), // not expired
       },
     },
   });
@@ -42,7 +42,7 @@ const createInvitation = async (data) => {
   }
 
   try {
-    // Отримуємо дані запрошувача для email
+    // Get inviter data for email
     const inviter = await User.findByPk(invitedBy);
     if (!inviter) {
       const error = new Error("Inviter not found");
@@ -50,18 +50,18 @@ const createInvitation = async (data) => {
       throw error;
     }
 
-    // Створюємо запрошення
+    // Create invitation
     const invitation = await Invitation.create({
       id: uuidv4(),
       email,
       role,
       invitedBy,
       token: uuidv4(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 днів
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       used: false,
     });
 
-    // Надсилаємо email з запрошенням
+    // Send email with invitation
     try {
       const inviterName = inviter.firstName
         ? `${inviter.firstName} ${inviter.lastName || ""}`
@@ -71,7 +71,7 @@ const createInvitation = async (data) => {
       logger.info(`Invitation email sent to ${email} for role ${role}`);
     } catch (emailError) {
       logger.error(`Failed to send invitation email: ${emailError.message}`);
-      // Ми все одно створюємо запрошення, навіть якщо надсилання email не вдалося
+      // We still create invitation even if email sending failed
     }
 
     return {
@@ -174,7 +174,7 @@ const cancelInvitation = async (id, userId) => {
       throw error;
     }
 
-    // Повністю видаляємо запрошення замість встановлення дати закінчення
+    // Completely delete invitation instead of setting expiration date
     await invitation.destroy();
 
     return { id: invitation.id };

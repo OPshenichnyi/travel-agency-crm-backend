@@ -10,9 +10,9 @@ const router = express.Router();
  * @swagger
  * /admin/register-first-admin:
  *   post:
- *     summary: Реєстрація першого адміністратора
- *     description: Створює першого адміністратора в системі. Використовується при початковому налаштуванні.
- *     tags: [Адміністрування]
+ *     summary: Register first administrator
+ *     description: Creates the first administrator in the system. Used during initial setup.
+ *     tags: [Administration]
  *     requestBody:
  *       required: true
  *       content:
@@ -26,23 +26,23 @@ const router = express.Router();
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Email адміністратора
+ *                 description: Administrator email
  *               password:
  *                 type: string
  *                 format: password
- *                 description: Пароль адміністратора
+ *                 description: Administrator password
  *               firstName:
  *                 type: string
- *                 description: Ім'я адміністратора
+ *                 description: Administrator first name
  *               lastName:
  *                 type: string
- *                 description: Прізвище адміністратора
+ *                 description: Administrator last name
  *               phone:
  *                 type: string
- *                 description: Номер телефону адміністратора
+ *                 description: Administrator phone number
  *     responses:
  *       201:
- *         description: Адміністратор успішно створений
+ *         description: Administrator created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -55,11 +55,11 @@ const router = express.Router();
  *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
- *                   description: JWT токен для авторизації
+ *                   description: JWT token for authorization
  *       400:
- *         description: Адміністратор вже існує
+ *         description: Administrator already exists
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.post(
   "/register-first-admin",

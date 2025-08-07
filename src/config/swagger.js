@@ -1,16 +1,16 @@
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
-// Базові налаштування Swagger
+// Basic Swagger settings
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
     info: {
       title: "Travel Agency CRM API",
       version: "1.0.0",
-      description: "API для CRM системи туристичної агенції",
+      description: "API for Travel Agency CRM system",
       contact: {
-        name: "Підтримка",
+        name: "Support",
         email: "support@example.com",
       },
     },
@@ -45,7 +45,7 @@ const swaggerOptions = {
                       },
                       message: {
                         type: "string",
-                        example: "Необхідна авторизація",
+                        example: "Authentication required",
                       },
                     },
                   },
@@ -62,38 +62,38 @@ const swaggerOptions = {
             id: {
               type: "string",
               format: "uuid",
-              description: "Унікальний ідентифікатор користувача",
+              description: "Unique user identifier",
             },
             email: {
               type: "string",
               format: "email",
-              description: "Email користувача",
+              description: "User email",
             },
             role: {
               type: "string",
               enum: ["admin", "manager", "agent"],
-              description: "Роль користувача",
+              description: "User role",
             },
             firstName: {
               type: "string",
-              description: "Ім'я користувача",
+              description: "User first name",
             },
             lastName: {
               type: "string",
-              description: "Прізвище користувача",
+              description: "User last name",
             },
             phone: {
               type: "string",
-              description: "Номер телефону користувача",
+              description: "User phone number",
             },
             isActive: {
               type: "boolean",
-              description: "Статус активності користувача",
+              description: "User activity status",
             },
             managerId: {
               type: "string",
               format: "uuid",
-              description: "ID менеджера (тільки для агентів)",
+              description: "Manager ID (only for agents)",
             },
           },
         },
@@ -103,36 +103,36 @@ const swaggerOptions = {
             id: {
               type: "string",
               format: "uuid",
-              description: "Унікальний ідентифікатор запрошення",
+              description: "Unique invitation identifier",
             },
             email: {
               type: "string",
               format: "email",
-              description: "Email, на який надіслано запрошення",
+              description: "Email to which the invitation was sent",
             },
             role: {
               type: "string",
               enum: ["manager", "agent"],
-              description: "Роль для запрошеного користувача",
+              description: "Role for the invited user",
             },
             invitedBy: {
               type: "string",
               format: "uuid",
-              description: "ID користувача, який створив запрошення",
+              description: "ID of the user who created the invitation",
             },
             expiresAt: {
               type: "string",
               format: "date-time",
-              description: "Дата закінчення дії запрошення",
+              description: "Invitation expiration date",
             },
             used: {
               type: "boolean",
-              description: "Чи було використано запрошення",
+              description: "Whether the invitation was used",
             },
             createdAt: {
               type: "string",
               format: "date-time",
-              description: "Дата створення запрошення",
+              description: "Invitation creation date",
             },
           },
         },
@@ -142,126 +142,126 @@ const swaggerOptions = {
             id: {
               type: "string",
               format: "uuid",
-              description: "Унікальний ідентифікатор замовлення",
+              description: "Unique order identifier",
             },
             agentId: {
               type: "string",
               format: "uuid",
-              description: "ID агента, який створив замовлення",
+              description: "ID of the agent who created the order",
             },
             checkIn: {
               type: "string",
               format: "date-time",
-              description: "Дата заїзду",
+              description: "Check-in date",
             },
             checkOut: {
               type: "string",
               format: "date-time",
-              description: "Дата виїзду",
+              description: "Check-out date",
             },
             nights: {
               type: "integer",
-              description: "Кількість ночей",
+              description: "Number of nights",
             },
             propertyName: {
               type: "string",
-              description: "Назва об'єкта розміщення",
+              description: "Accommodation property name",
             },
             location: {
               type: "string",
-              description: "Місце розташування",
+              description: "Location",
             },
             reservationNo: {
               type: "integer",
-              description: "Номер бронювання",
+              description: "Reservation number",
             },
             reservationCode: {
               type: "string",
-              description: "Код бронювання",
+              description: "Reservation code",
             },
             country: {
               type: "string",
-              description: "Країна",
+              description: "Country",
             },
             clientName: {
               type: "string",
-              description: "Ім'я клієнта",
+              description: "Client name",
             },
             clientIdNo: {
               type: "string",
-              description: "Номер ID клієнта",
+              description: "Client ID number",
             },
             guests: {
               type: "string",
-              description: "Інформація про гостей",
+              description: "Guest information",
             },
             clientPhone: {
               type: "string",
-              description: "Телефон клієнта",
+              description: "Client phone number",
             },
             officialPrice: {
               type: "number",
               format: "float",
-              description: "Офіційна ціна",
+              description: "Official price",
             },
             tax: {
               type: "number",
               format: "float",
-              description: "Податок",
+              description: "Tax",
             },
             totalPrice: {
               type: "number",
               format: "float",
-              description: "Загальна ціна",
+              description: "Total price",
             },
             depositBank: {
               type: "number",
               format: "float",
-              description: "Сума депозиту до сплати через банк",
+              description: "Bank deposit amount to be paid",
             },
             cashOnCheckIn: {
               type: "number",
               format: "float",
-              description: "Сума до сплати при заїзді",
+              description: "Amount to be paid on check-in",
             },
             damageDeposit: {
               type: "string",
               enum: ["yes", "no"],
-              description: "Наявність депозиту за пошкодження",
+              description: "Damage deposit presence",
             },
             depositPaid: {
               type: "boolean",
-              description: "Чи оплачено депозит",
+              description: "Is deposit paid",
             },
             status: {
               type: "string",
               enum: ["draft", "confirmed", "paid"],
-              description: "Статус замовлення",
+              description: "Order status",
             },
             pdfInvoiceUrl: {
               type: "string",
-              description: "URL PDF-рахунку",
+              description: "PDF invoice URL",
             },
             pdfVoucherUrl: {
               type: "string",
-              description: "URL PDF-ваучера",
+              description: "PDF voucher URL",
             },
             createdAt: {
               type: "string",
               format: "date-time",
-              description: "Дата створення замовлення",
+              description: "Order creation date",
             },
             updatedAt: {
               type: "string",
               format: "date-time",
-              description: "Дата останнього оновлення замовлення",
+              description: "Order last update date",
             },
           },
         },
       },
     },
   },
-  apis: ["./src/routes/*.js"], // шляхи до файлів з анотаціями
+  apis: ["./src/routes/*.js"], // paths to files with annotations
 };
 
 const swaggerSpec = swaggerJsDoc(swaggerOptions);

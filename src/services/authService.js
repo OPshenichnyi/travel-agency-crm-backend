@@ -82,7 +82,7 @@ const login = async (email, password) => {
  * @returns {Object} - User data and token
  */
 const register = async (token, userData) => {
-  // Знаходимо запрошення за токеном
+  // Find invitation by token
   const invitation = await Invitation.findOne({
     where: {
       token,
@@ -97,14 +97,14 @@ const register = async (token, userData) => {
     ],
   });
 
-  // Перевіряємо, чи існує запрошення і чи воно валідне
+  // Check if invitation exists and is valid
   if (!invitation) {
     const error = new Error("Invalid or expired invitation token");
     error.status = 400;
     throw error;
   }
 
-  // Перевіряємо, чи запрошення не прострочене
+  // Check if invitation is not expired
   if (new Date() > invitation.expiresAt) {
     const error = new Error("Invitation has expired");
     error.status = 400;
@@ -112,17 +112,17 @@ const register = async (token, userData) => {
   }
 
   try {
-    // Визначаємо managerId для агентів
+    // Determine managerId for agents
     let managerId = null;
     if (invitation.role === "agent" && invitation.inviter) {
-      // Якщо запрошувач - менеджер, його ID стає managerId
+      // If inviter is manager, his ID becomes managerId
       if (invitation.inviter.role === "manager") {
         managerId = invitation.inviter.id;
       }
-      // Якщо запрошувач - адмін, залишаємо managerId як null (або ви можете вибрати інший підхід)
+      // If inviter is admin, leave managerId as null (or you can choose another approach)
     }
 
-    // Створюємо користувача
+    // Create user
     const user = await User.create({
       email: invitation.email,
       role: invitation.role,
@@ -133,14 +133,14 @@ const register = async (token, userData) => {
       managerId: managerId,
     });
 
-    // Позначаємо запрошення як використане
+    // Mark invitation as used
     invitation.used = true;
     await invitation.save();
 
-    // Генеруємо JWT токен
+    // Generate JWT token
     const token = generateToken(user);
 
-    // Повертаємо дані користувача та токен
+    // Return user data and token
     return {
       user: {
         id: user.id,

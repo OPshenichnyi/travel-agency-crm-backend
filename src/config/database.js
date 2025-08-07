@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-// Шлях до файлу SQLite
+// Path to SQLite file
 const dbPath = path.join(__dirname, "../../database.sqlite");
 
 const sequelize = new Sequelize({
@@ -16,13 +16,13 @@ const sequelize = new Sequelize({
   storage: dbPath,
   logging: process.env.NODE_ENV === "development" ? console.log : false,
   pool: {
-    max: 1, // Обмежуємо до одного підключення
+    max: 1, // Limit to one connection
     min: 0,
     acquire: 30000,
     idle: 10000,
   },
   retry: {
-    max: 5, // Кількість спроб при помилці
+    max: 5, // Number of retry attempts on error
   },
   transactionType: "IMMEDIATE",
 });

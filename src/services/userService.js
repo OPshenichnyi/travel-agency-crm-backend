@@ -27,13 +27,13 @@ const toggleUserStatus = async (userId, isActive) => {
       throw error;
     }
 
-    // Використовуємо raw SQL запит через sequelize
+    // Use raw SQL query through sequelize
     await sequelize.query(`UPDATE users SET isActive = ? WHERE id = ?`, {
       replacements: [isActive ? 1 : 0, userId],
       type: sequelize.QueryTypes.UPDATE,
     });
 
-    // Оновлюємо дані в моделі
+    // Update data in the model
     user.isActive = isActive;
 
     return {

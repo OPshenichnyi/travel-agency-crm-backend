@@ -11,8 +11,8 @@ const router = express.Router();
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Автентифікація користувача
- *     tags: [Автентифікація]
+ *     summary: User authentication
+ *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
@@ -26,14 +26,14 @@ const router = express.Router();
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Email користувача
+ *                 description: User email
  *               password:
  *                 type: string
  *                 format: password
- *                 description: Пароль користувача
+ *                 description: User password
  *     responses:
  *       200:
- *         description: Успішна автентифікація
+ *         description: Successful authentication
  *         content:
  *           application/json:
  *             schema:
@@ -43,15 +43,15 @@ const router = express.Router();
  *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
- *                   description: JWT токен для авторизації
+ *                   description: JWT token for authorization
  *       401:
- *         description: Неправильний email або пароль
+ *         description: Invalid email or password
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/responses/UnauthorizedError'
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 // Login route
 router.post(
@@ -69,16 +69,16 @@ router.post(
  * @swagger
  * /auth/register/{token}:
  *   post:
- *     summary: Реєстрація користувача за запрошенням
- *     description: Реєструє нового користувача за запрошенням. Якщо реєструється агент через запрошення від менеджера, агент автоматично прив'язується до цього менеджера.
- *     tags: [Автентифікація]
+ *     summary: User registration by invitation
+ *     description: Registers a new user by invitation. If an agent registers through an invitation from a manager, the agent is automatically assigned to that manager.
+ *     tags: [Authentication]
  *     parameters:
  *       - in: path
  *         name: token
  *         required: true
  *         schema:
  *           type: string
- *         description: Токен запрошення
+ *         description: Invitation token
  *     requestBody:
  *       required: true
  *       content:
@@ -93,19 +93,19 @@ router.post(
  *               password:
  *                 type: string
  *                 format: password
- *                 description: Пароль користувача
+ *                 description: User password
  *               firstName:
  *                 type: string
- *                 description: Ім'я користувача
+ *                 description: User first name
  *               lastName:
  *                 type: string
- *                 description: Прізвище користувача
+ *                 description: User last name
  *               phone:
  *                 type: string
- *                 description: Номер телефону користувача
+ *                 description: User phone number
  *     responses:
  *       201:
- *         description: Успішна реєстрація
+ *         description: Successful registration
  *         content:
  *           application/json:
  *             schema:
@@ -118,11 +118,11 @@ router.post(
  *                   $ref: '#/components/schemas/User'
  *                 token:
  *                   type: string
- *                   description: JWT токен для авторизації
+ *                   description: JWT token for authorization
  *       400:
- *         description: Недійсний або прострочений токен
+ *         description: Invalid or expired token
  *       422:
- *         description: Помилка валідації даних
+ *         description: Data validation error
  */
 router.post(
   "/register/:token",

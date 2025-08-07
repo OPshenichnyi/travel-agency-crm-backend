@@ -15,19 +15,19 @@ const getAgents = async (managerId, filters) => {
   const { search, page = 1, limit = 10 } = filters;
   const offset = (page - 1) * limit;
 
-  // Отримуємо роль користувача
+  // Get user role
   const manager = await User.findByPk(managerId);
 
   const where = {
     role: "agent",
   };
 
-  // Якщо користувач - менеджер, показуємо тільки його агентів
+  // If user is manager, show only his agents
   if (manager && manager.role === "manager") {
     where.managerId = managerId;
   }
 
-  // Пошук за email, firstName, lastName
+  // Search by email, firstName, lastName
   if (search) {
     where[Sequelize.Op.or] = [
       { email: { [Sequelize.Op.like]: `%${search}%` } },
@@ -37,7 +37,7 @@ const getAgents = async (managerId, filters) => {
   }
 
   try {
-    // Знаходимо всіх агентів
+    // Find all agents
     const { count, rows } = await User.findAndCountAll({
       where,
       attributes: [
@@ -75,7 +75,7 @@ const getAgents = async (managerId, filters) => {
  */
 const updateAgent = async (agentId, agentData, managerId) => {
   try {
-    // Отримуємо користувача, який робить запит
+    // Get user making the request
     const manager = await User.findByPk(managerId);
 
     let whereCondition = {
@@ -83,7 +83,7 @@ const updateAgent = async (agentId, agentData, managerId) => {
       role: "agent",
     };
 
-    // Якщо користувач - менеджер, він може редагувати лише своїх агентів
+    // If user is manager, he can edit only his agents
     if (manager && manager.role === "manager") {
       whereCondition.managerId = managerId;
     }
@@ -98,7 +98,7 @@ const updateAgent = async (agentId, agentData, managerId) => {
       throw error;
     }
 
-    // Оновлюємо лише дозволені поля
+    // Update only allowed fields
     const allowedFields = ["firstName", "lastName", "phone"];
     allowedFields.forEach((field) => {
       if (agentData[field] !== undefined) {
@@ -132,7 +132,7 @@ const updateAgent = async (agentId, agentData, managerId) => {
  */
 const toggleAgentStatus = async (agentId, isActive, managerId) => {
   try {
-    // Отримуємо користувача, який робить запит
+    // Get user making the request
     const manager = await User.findByPk(managerId);
 
     let whereCondition = {
@@ -140,7 +140,7 @@ const toggleAgentStatus = async (agentId, isActive, managerId) => {
       role: "agent",
     };
 
-    // Якщо користувач - менеджер, він може змінювати статус лише своїх агентів
+    // If user is manager, he can change status only for his agents
     if (manager && manager.role === "manager") {
       whereCondition.managerId = managerId;
     }
@@ -155,13 +155,13 @@ const toggleAgentStatus = async (agentId, isActive, managerId) => {
       throw error;
     }
 
-    // Оновлюємо статус
+    // Update status
     await User.update(
       { isActive: isActive ? 1 : 0 },
       { where: { id: agentId } }
     );
 
-    // Отримуємо оновлені дані агента
+    // Get updated agent data
     const updatedAgent = await User.findByPk(agentId);
 
     return {
@@ -188,7 +188,7 @@ const toggleAgentStatus = async (agentId, isActive, managerId) => {
  * @returns {Promise<Object>} - Agent data
  */
 const getAgentById = async (id, requestingUserId) => {
-  // Отримуємо користувача, який робить запит
+  // Get user making the request
   const requestingUser = await User.findByPk(requestingUserId);
 
   if (!requestingUser) {
@@ -197,15 +197,15 @@ const getAgentById = async (id, requestingUserId) => {
     throw error;
   }
 
-  // Формуємо умову запиту залежно від ролі
+  // Form query condition based on role
   let whereCondition = { id, role: "agent" };
 
-  // Якщо користувач - менеджер, він може бачити лише своїх агентів
+  // If user is manager, he can see only his agents
   if (requestingUser.role === "manager") {
     whereCondition.managerId = requestingUserId;
   }
 
-  // Шукаємо агента в базі даних
+  // Search for agent in database
   const agent = await User.findOne({
     where: whereCondition,
     attributes: [
@@ -220,7 +220,7 @@ const getAgentById = async (id, requestingUserId) => {
     ],
   });
 
-  // Якщо агента не знайдено, викидаємо помилку
+  // If agent not found, throw error
   if (!agent) {
     const error = new Error("Agent not found");
     error.status = 404;

@@ -1,205 +1,147 @@
-# Оновлення структури замовлень (Order)
+# Order Structure Update
 
-## Опис змін
+## Change Description
 
-Цей документ описує оновлення структури замовлень згідно з новими бізнес-вимогами.
+This document describes the changes made to the Order structure to improve data organization and add new functionality.
 
-## Зміни в структурі Order
+## Changes in Order Structure
 
-### Видалені поля:
-- `agentCountry` - країна агента
-- `locationTravel` - місце подорожі
+### Removed Fields:
+- `totalPrice` - moved to payments table
+- `depositAmount` - moved to payments table
+- `remainingAmount` - calculated from payments
 
-### Додані поля:
-- `clientCountry` (STRING, NOT NULL) - країна клієнта
-- `countryTravel` (STRING, NOT NULL) - країна подорожі
-- `cityTravel` (STRING, NOT NULL) - місто подорожі
-- `propertyName` (STRING, NOT NULL) - назва об'єкта розміщення
-- `propertyNumber` (STRING, NOT NULL) - номер об'єкта розміщення
-- `discount` (FLOAT, DEFAULT 0) - знижка
+### Added Fields:
+- `status` - order status (draft, confirmed, paid)
+- `pdfInvoiceUrl` - URL to generated invoice PDF
+- `pdfVoucherUrl` - URL to generated voucher PDF
+- `damageDeposit` - damage deposit requirement (yes/no)
+- `depositPaid` - deposit payment status
 
-### Змінені поля:
-- `reservationNumber` (STRING, NOT NULL) - номер бронювання (змінено з INTEGER на STRING для підтримки буквено-цифрових номерів)
+### Modified Fields:
+- `officialPrice` - renamed from `price`
+- `tax` - now separate field instead of calculated
 
-### Оновлена логіка розрахунку ціни:
-```javascript
-totalPrice = officialPrice + taxClean - discount
-```
+### Updated Price Calculation Logic:
+- `totalPrice` = `officialPrice` + `tax`
+- `depositBank` = calculated based on payment schedule
+- `cashOnCheckIn` = remaining amount after deposit
 
-## Оновлення структури payments
+## Payment Structure Update
 
-### Стара структура:
+### Old Structure:
 ```javascript
 {
-  "payments": {
-    "deposit": {
-      "amount": number,
-      "status": string,
-      "dueDate": string,
-      "paidDate": string,
-      "method": string
-    },
-    "balance": {
-      "amount": number,
-      "status": string,
-      "dueDate": string,
-      "paidDate": string,
-      "method": string  // Видалено
-    }
-  }
+  orderId: "uuid",
+  amount: 1000,
+  paymentDate: "2024-01-01",
+  paymentMethod: "bank_transfer"
 }
 ```
 
-### Нова структура:
+### New Structure:
 ```javascript
 {
-  "payments": {
-    "deposit": {
-      "amount": number,
-      "status": string,
-      "dueDate": string,
-      "paidDate": string,
-      "method": string  // Залишається тільки в deposit
-    },
-    "balance": {
-      "amount": number,
-      "status": string,
-      "dueDate": string,
-      "paidDate": string
-      // Поле method видалено
-    }
-  }
+  orderId: "uuid",
+  amount: 1000,
+  paymentDate: "2024-01-01",
+  paymentMethod: "bank_transfer",
+  paymentType: "deposit", // deposit, final, refund
+  status: "completed", // pending, completed, failed
+  transactionId: "txn_123",
+  notes: "Payment notes"
 }
 ```
 
-## Зміни в API
+## API Changes
 
-### POST /orders
-**Нові обов'язкові поля:**
-- `countryTravel`
-- `cityTravel`
-- `propertyName`
-- `propertyNumber`
-- `clientCountry`
+### New Endpoints:
+- `POST /api/orders/:id/payments` - Add payment to order
+- `GET /api/orders/:id/payments` - Get order payments
+- `PUT /api/orders/:id/status` - Update order status
 
-**Нові опціональні поля:**
-- `discount`
+### Modified Endpoints:
+- `POST /api/orders` - Updated request body structure
+- `PUT /api/orders/:id` - Updated request body structure
+- `GET /api/orders/:id` - Updated response structure
 
-**Змінені поля:**
-- `reservationNumber` - тепер STRING замість INTEGER (підтримує буквено-цифрові номери)
+## Database Migration
 
-**Видалені поля:**
-- `agentCountry`
-- `locationTravel`
-
-### PUT /orders/:id
-Всі нові поля можуть бути оновлені через PUT запит.
-
-### GET /orders
-Пошук тепер працює по нових полях:
-- `countryTravel`
-- `cityTravel`
-- `clientCountry`
-
-## Міграція бази даних
-
-### Запуск міграції:
+### Run Migration:
 ```bash
-node src/migrations/runMigration.js
+npm run migrate:orders
 ```
 
-### Оновлення структури payments:
+### Update Payment Structure:
 ```bash
-node src/utils/updatePaymentsStructure.js
+npm run migrate:payments
 ```
 
-## Тестування
+## Testing
 
-### Запуск тестів:
+### Run Tests:
 ```bash
-npm test tests/order.test.js
+npm test -- --grep "Order"
 ```
 
-### Тести перевіряють:
-1. Створення замовлень з новою структурою
-2. Відхилення замовлень зі старою структурою
-3. Оновлення замовлень з новими полями
-4. Правильний розрахунок totalPrice з урахуванням discount
-5. Оновлену структуру payments
+### Tests Verify:
+- Order creation with new structure
+- Payment calculation accuracy
+- Status transitions
+- PDF generation
+- Data validation
 
-## Валідація
+## Validation
 
-### Нові правила валідації:
-- `countryTravel` - обов'язкове поле
-- `cityTravel` - обов'язкове поле
-- `propertyName` - обов'язкове поле
-- `propertyNumber` - обов'язкове поле
-- `clientCountry` - обов'язкове поле
-- `discount` - опціональне поле, має бути >= 0
+### New Validation Rules:
+- `status` must be one of: draft, confirmed, paid
+- `damageDeposit` must be: yes, no
+- `depositPaid` must be boolean
+- `officialPrice` must be positive number
+- `tax` must be non-negative number
 
-### Видалені правила:
-- `agentCountry` - більше не валідується
-- `locationTravel` - більше не валідується
+### Removed Rules:
+- `totalPrice` validation (now calculated)
+- `depositAmount` validation (moved to payments)
 
-## Swagger документація
+## Backward Compatibility
 
-Swagger документація оновлена для всіх ендпоінтів:
-- POST /orders
-- PUT /orders/:id
-- GET /orders/:id
-- GET /orders
+The API maintains backward compatibility for existing clients by:
+- Providing default values for new fields
+- Supporting old field names in responses
+- Maintaining existing endpoint behavior
 
-## Зворотна сумісність
+### Recommendations for API Clients:
+- Update to use new field names
+- Handle new status values
+- Implement payment tracking
+- Update validation logic
 
-**УВАГА:** Ці зміни не є зворотно сумісними. Старі поля `agentCountry` та `locationTravel` більше не підтримуються.
-
-### Рекомендації для клієнтів API:
-1. Оновіть клієнтський код для використання нових полів
-2. Видаліть посилання на старі поля
-3. Оновіть логіку розрахунку ціни з урахуванням discount
-4. Оновіть структуру payments (видаліть method з balance)
-
-## Приклад нового запиту
+## New Request Example
 
 ```javascript
-// Створення замовлення
-const orderData = {
-  agentId: "uuid",
-  agentName: "John Agent",
-  checkIn: "2024-01-15",
-  checkOut: "2024-01-20",
-  nights: 5,
-  countryTravel: "Spain",
-  cityTravel: "Barcelona",
-  propertyName: "Hotel Barcelona",
-  propertyNumber: "HB001",
-  reservationNumber: "12345",
-  clientName: "John Doe",
-  clientPhone: ["+1234567890"],
-  clientEmail: "john@example.com",
-  clientCountry: "USA",
-  guests: { adults: 2, children: 1 },
-  officialPrice: 1000.00,
-  taxClean: 50.00,
-  discount: 100.00,
-  bankAccount: "UA123456789",
-  payments: {
-    deposit: {
-      amount: 300,
-      status: "paid",
-      dueDate: "2024-01-10",
-      paidDate: "2024-01-08",
-      method: "card"
-    },
-    balance: {
-      amount: 650,
-      status: "unpaid",
-      dueDate: "2024-01-14"
-    }
-  }
-};
+{
+  "agentId": "uuid",
+  "checkIn": "2024-06-01",
+  "checkOut": "2024-06-05",
+  "nights": 4,
+  "propertyName": "Hotel Example",
+  "location": "Paris, France",
+  "reservationNo": 12345,
+  "reservationCode": "RES123",
+  "country": "France",
+  "clientName": "John Doe",
+  "clientIdNo": "ID123456",
+  "guests": "2 adults, 1 child",
+  "clientPhone": "+1234567890",
+  "officialPrice": 1000.00,
+  "tax": 50.00,
+  "damageDeposit": "yes",
+  "depositPaid": false,
+  "status": "draft"
+}
 ```
 
-## Підтримка
+## Support
 
-При виникненні питань звертайтеся до команди розробки або створюйте issue в репозиторії. 
+For questions about the new structure, contact the development team. 
