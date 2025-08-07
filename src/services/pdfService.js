@@ -1,9 +1,11 @@
 import PDFDocument from "pdfkit";
 import { format } from "date-fns";
+import { getBankAccountById } from "./bankAccountService.js";
+import { User } from "../models/index.js";
 
 class PDFService {
-  static generateVoucher(order) {
-    return new Promise((resolve, reject) => {
+  static async generateVoucher(order) {
+    return new Promise(async (resolve, reject) => {
       try {
         const doc = new PDFDocument({
           size: "A4",
@@ -116,28 +118,67 @@ class PDFService {
           doc.fontSize(11).font("Helvetica");
 
           try {
-            const bankInfo =
-              typeof order.bankAccount === "string"
-                ? JSON.parse(order.bankAccount)
-                : order.bankAccount;
+            // Get agent's manager to access bank account
+            const agent = await User.findByPk(order.agentId);
+            if (!agent) {
+              throw new Error("Agent not found");
+            }
 
-            if (bankInfo.bankName) {
-              addField("Bank Name:", `${bankInfo.bankName}`);
+            if (!agent.managerId) {
+              throw new Error("Agent not assigned to manager");
             }
-            if (bankInfo.swift) {
-              addField("Swift &Bic:", `${bankInfo.swift}`);
+
+            // Try to get bank account data by ID using manager's permissions
+            const bankAccount = await getBankAccountById(
+              order.bankAccount,
+              agent.managerId, // Using managerId for permissions
+              "manager" // Using manager role for permissions
+            );
+
+            if (bankAccount.bankName) {
+              addField("Bank Name:", `${bankAccount.bankName}`);
             }
-            if (bankInfo.iban) {
-              addField("IBAN:", `${bankInfo.iban}`);
+            if (bankAccount.swift) {
+              addField("Swift &Bic:", `${bankAccount.swift}`);
             }
-            if (bankInfo.holder) {
-              addField("Holder (Beneficiar):", `${bankInfo.holder}`);
+            if (bankAccount.iban) {
+              addField("IBAN:", `${bankAccount.iban}`);
             }
-            if (bankInfo.address) {
-              addField("Address:", `${bankInfo.address}`);
+            if (bankAccount.holderName) {
+              addField("Holder (Beneficiar):", `${bankAccount.holderName}`);
+            }
+            if (bankAccount.address) {
+              addField("Address:", `${bankAccount.address}`);
             }
           } catch (e) {
-            addField("Bank Account:", `${order.bankAccount}`);
+            console.log("Error getting bank account data:", e.message);
+            // Fallback to old format if bank account not found
+            try {
+              const bankInfo =
+                typeof order.bankAccount === "string"
+                  ? JSON.parse(order.bankAccount)
+                  : order.bankAccount;
+
+              if (bankInfo.bankName) {
+                addField("Bank Name:", `${bankInfo.bankName}`);
+              }
+              if (bankInfo.swift) {
+                addField("Swift &Bic:", `${bankInfo.swift}`);
+              }
+              if (bankInfo.iban) {
+                addField("IBAN:", `${bankInfo.iban}`);
+              }
+              if (bankInfo.holder) {
+                addField("Holder (Beneficiar):", `${bankInfo.holder}`);
+              }
+              if (bankInfo.address) {
+                addField("Address:", `${bankInfo.address}`);
+              }
+            } catch (e2) {
+              console.log("Error parsing bank account JSON:", e2.message);
+              // Final fallback - show as string
+              addField("Bank Account:", `${order.bankAccount}`);
+            }
           }
         }
 
