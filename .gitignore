@@ -26,6 +26,9 @@ Thumbs.db
 /dist
 /build
 
+# Адміністративні скрипти
+scripts/
+
 # Інше
 coverage/
 .vscode/

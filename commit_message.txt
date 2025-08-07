@@ -1,28 +1,21 @@
-feat: add PDF voucher generation endpoint with updated format
+feat: prepare system for MVP deployment
 
-- Add PDFKit dependency for PDF generation
-- Create PDFService for voucher generation with structured layout
-- Add voucherController with validation and error handling
-- Add new route GET /api/orders/{orderId}/voucher
-- Implement authorization checks (agents can only access own orders)
-- Add status validation (only approved orders can generate vouchers)
-- Update PDF layout to match real voucher format:
-  - Header with reservation confirmation date
-  - Reservation details section with proper formatting
-  - Financial information with tax calculations
-  - Bank details section with holder and address info
-  - Deposit and payment notes with red highlighting
-  - General rules and policies section
-  - Personal data protection declaration
-- Add proper error responses (404, 403, 500)
-- Include logging for all voucher generation requests
-- Add Swagger documentation for the new endpoint
+- Remove 28 test files from root directory
+- Clean up migration scripts (not needed for new server)
+- Move admin scripts to scripts/ folder and add to .gitignore
+- Update Jest configuration for tests/ directory only
+- Update package.json scripts for new script locations
 
-Technical details:
-- Uses PDFKit for PDF generation
-- Uses date-fns for date formatting
-- Validates required fields before generation
-- Returns PDF as downloadable file with proper headers
-- Supports both string and JSON bank account formats
-- Implements red color highlighting for important information
-- Follows exact layout structure from real voucher example 
+Files removed:
+- 24 test-*.js files
+- 4 migration/check scripts
+- test-setup.js
+
+Files moved to scripts/:
+- reset-admin-password.js
+- reset-user-password.js  
+- reset-database.js
+- create-admin.js
+
+System is now clean and ready for production deployment.
+All core functionality preserved, only development/test files removed. 
