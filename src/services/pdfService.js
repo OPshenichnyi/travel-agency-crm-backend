@@ -33,14 +33,14 @@ class PDFService {
             )}`,
             { align: "left" }
           );
-        doc.moveDown(0.5);
+        doc.moveDown(0.2);
         doc
           .fontSize(11)
           .font("Helvetica-Bold")
           .text("Here are the details of your reservation:", {
             align: "left",
           });
-        doc.moveDown(0.5);
+        doc.moveDown(0.2);
         // Reservation Details Section
         doc.fontSize(11).font("Helvetica");
 
@@ -54,7 +54,7 @@ class PDFService {
           if (isRed) doc.fillColor("black");
 
           // Move down for spacing between fields
-          doc.moveDown(0.5);
+          doc.moveDown(0.2);
         };
 
         // Check in/out
@@ -83,14 +83,36 @@ class PDFService {
         }
 
         // Guests
-        if (order.guests && Array.isArray(order.guests)) {
-          const guestInfo = order.guests
-            .map((guest) => {
-              const age = guest.age ? guest.age : "N/A";
-              return `${guest.name || "N/A"} (${age})`;
-            })
-            .join(", ");
-          addField("Guests:", `${order.guests.length} person(s): ${guestInfo}`);
+        if (order.guests && typeof order.guests === "object") {
+          let guestInfo = "";
+
+          if (order.guests.adults && order.guests.children) {
+            // New format: {adults: number, children: [{age: number}]}
+            const adultsCount = order.guests.adults;
+            const childrenCount = order.guests.children.length;
+            const childrenAges = order.guests.children
+              .map((child) => child.age)
+              .join(",");
+
+            if (childrenCount > 0) {
+              guestInfo = `${adultsCount}ad+${childrenCount}ch (${childrenAges})`;
+            } else {
+              guestInfo = `${adultsCount}ad`;
+            }
+          } else if (Array.isArray(order.guests)) {
+            // Old format: array of guests
+            const guestInfo = order.guests
+              .map((guest) => {
+                const age = guest.age ? guest.age : "N/A";
+                return `${guest.name || "N/A"} (${age})`;
+              })
+              .join(", ");
+            guestInfo = `${order.guests.length} person(s): ${guestInfo}`;
+          }
+
+          if (guestInfo) {
+            addField("Guests:", guestInfo);
+          }
         }
 
         // Client phone
@@ -112,7 +134,7 @@ class PDFService {
         addField("Total price:", `${order.totalPrice}€`);
 
         addField("Cash on check-in:", `${order.balanceAmount || 0}€`);
-
+        doc.moveDown(1);
         // Bank Details Section
         if (order.bankAccount) {
           doc.fontSize(11).font("Helvetica");
