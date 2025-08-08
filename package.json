@@ -11,6 +11,7 @@
     "reset-password": "node scripts/reset-user-password.js",
     "reset-db": "node scripts/reset-database.js",
     "create-admin": "node scripts/create-admin.js",
+    "migrate-to-postgres": "node scripts/migrate-to-postgres.js",
     "test": "jest"
   },
   "keywords": [

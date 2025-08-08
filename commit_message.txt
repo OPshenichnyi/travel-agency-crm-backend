@@ -1,21 +1,12 @@
-feat: prepare system for MVP deployment
+feat: prepare for production deployment with PostgreSQL 15-alpine
 
-- Remove 28 test files from root directory
-- Clean up migration scripts (not needed for new server)
-- Move admin scripts to scripts/ folder and add to .gitignore
-- Update Jest configuration for tests/ directory only
-- Update package.json scripts for new script locations
-
-Files removed:
-- 24 test-*.js files
-- 4 migration/check scripts
-- test-setup.js
-
-Files moved to scripts/:
-- reset-admin-password.js
-- reset-user-password.js  
-- reset-database.js
-- create-admin.js
-
-System is now clean and ready for production deployment.
-All core functionality preserved, only development/test files removed. 
+- Update database config to support PostgreSQL in production
+- Update docker-compose.yml with PostgreSQL 15-alpine and health checks
+- Add health check endpoint /api/health for monitoring
+- Create env.example template for production environment variables
+- Update Dockerfile with security improvements and production optimizations
+- Add migration script for SQLite to PostgreSQL data transfer
+- Add deployment guide with security checklist and troubleshooting
+- Configure proper logging and error handling for production
+- Add health checks for both app and database containers
+- Implement secure user permissions in Docker container 

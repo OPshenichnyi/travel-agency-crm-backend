@@ -9,17 +9,16 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./src:/app/src
       - ./logs:/app/logs
     depends_on:
       - postgres
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=travel_agency
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
@@ -29,9 +28,14 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
-    image: postgres:14-alpine
+    image: postgres:15-alpine
     container_name: travel-agency-db
     ports:
       - "5432:5432"
@@ -40,11 +44,16 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=travel_agency
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   app-network:
