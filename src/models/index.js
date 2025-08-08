@@ -39,12 +39,14 @@ const syncModels = async () => {
 
     await sequelize.sync(syncOptions);
     console.log("Models synchronized with database");
+
+    // Use PostgreSQL query instead of SQLite
     const [results] = await sequelize.query(
-      "SELECT name FROM sqlite_master WHERE type='table';"
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
     );
     console.log(
       "Tables in database:",
-      results.map((r) => r.name)
+      results.map((r) => r.table_name)
     );
   } catch (error) {
     console.error("Unable to connect to the database:", error);
