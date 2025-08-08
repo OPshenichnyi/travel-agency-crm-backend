@@ -1,4 +1,4 @@
-import Order from "../models/Order.js";
+import Order from "../models/order.js";
 import PDFService from "../services/pdfService.js";
 import logger from "../utils/logger.js";
 
