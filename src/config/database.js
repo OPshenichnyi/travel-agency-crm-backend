@@ -8,11 +8,11 @@ dotenv.config();
 // Database configuration based on environment
 const getDatabaseConfig = () => {
   if (process.env.NODE_ENV === "production") {
-    // PostgreSQL configuration for production
+    // PostgreSQL configuration for production - connecting to existing database
     return {
       dialect: "postgres",
       host: process.env.DB_HOST || "localhost",
-      port: process.env.DB_PORT || 5432,
+      port: process.env.DB_PORT || 5433,
       database: process.env.DB_NAME || "travel_agency",
       username: process.env.DB_USER || "postgres",
       password: process.env.DB_PASSWORD || "postgres",
