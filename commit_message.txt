@@ -5,8 +5,9 @@ feat: prepare for production deployment with PostgreSQL 15-alpine
 - Add health check endpoint /api/health for monitoring
 - Create env.example template for production environment variables
 - Update Dockerfile with security improvements and production optimizations
-- Add migration script for SQLite to PostgreSQL data transfer
 - Add deployment guide with security checklist and troubleshooting
 - Configure proper logging and error handling for production
 - Add health checks for both app and database containers
-- Implement secure user permissions in Docker container 
+- Implement secure user permissions in Docker container
+- Remove SQLite dependencies and migration scripts (new database setup)
+- Fix npm install compatibility issues in Dockerfile 

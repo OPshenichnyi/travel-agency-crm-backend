@@ -22,15 +22,7 @@ Configure the following variables:
 - `SMTP_*` - Email service credentials
 - `FRONTEND_URL` - Your frontend domain
 
-### 2. Database Migration (if migrating from SQLite)
-
-If you have existing SQLite data:
-
-```bash
-npm run migrate-to-postgres
-```
-
-### 3. Build and Deploy
+### 2. Build and Deploy
 
 ```bash
 # Build and start services
@@ -43,13 +35,13 @@ docker-compose logs -f
 curl http://localhost:3000/api/health
 ```
 
-### 4. Verify Deployment
+### 3. Verify Deployment
 
 - Health check: `GET /api/health`
 - API docs: `GET /api-docs`
 - Base endpoint: `GET /api`
 
-### 5. Security Checklist
+### 4. Security Checklist
 
 - [ ] Strong database password set
 - [ ] JWT secret is secure and unique
@@ -59,13 +51,13 @@ curl http://localhost:3000/api/health
 - [ ] SSL/TLS certificates installed
 - [ ] Regular backups configured
 
-### 6. Monitoring
+### 5. Monitoring
 
 - Health checks are configured for both app and database
 - Logs are available in `./logs` directory
 - Database data is persisted in Docker volume
 
-### 7. Backup Strategy
+### 6. Backup Strategy
 
 ```bash
 # Database backup
@@ -75,7 +67,7 @@ docker exec travel-agency-db pg_dump -U postgres travel_agency > backup.sql
 docker exec -i travel-agency-db psql -U postgres travel_agency < backup.sql
 ```
 
-### 8. Troubleshooting
+### 7. Troubleshooting
 
 - Check container logs: `docker-compose logs [service-name]`
 - Verify database connection: `docker exec travel-agency-db psql -U postgres -d travel_agency`
