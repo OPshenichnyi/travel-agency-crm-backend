@@ -53,8 +53,10 @@ const startServer = async () => {
     // Connect to database and sync models
     await syncModels();
 
-    // Verify email service connection
-    await verifyConnection();
+    // Verify email service connection only in development
+    if (process.env.NODE_ENV === "development") {
+      await verifyConnection();
+    }
 
     // Start Express server
     app.listen(PORT, () => {
