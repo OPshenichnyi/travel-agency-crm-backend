@@ -7,7 +7,7 @@ services:
       dockerfile: docker/node/Dockerfile
     container_name: travel-agency-api
     ports:
-      - "3002:3002"
+      - "3002:3000"
     volumes:
       - ./logs:/app/logs
     environment:
@@ -26,7 +26,7 @@ services:
 
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
