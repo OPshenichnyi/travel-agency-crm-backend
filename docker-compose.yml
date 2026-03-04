@@ -7,11 +7,9 @@ services:
       dockerfile: docker/node/Dockerfile
     container_name: travel-agency-api
     ports:
-      - "3000:3000"
+      - "3002:3000"
     volumes:
       - ./logs:/app/logs
-    depends_on:
-      - postgres
     environment:
       - NODE_ENV=production
       - DB_HOST=postgres
@@ -25,8 +23,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - FRONTEND_URL=${FRONTEND_URL}
-    networks:
-      - app-network
+
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
@@ -34,24 +31,5 @@ services:
       timeout: 10s
       retries: 3
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: travel-agency-db
-    ports:
-      - "5433:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=travel_agency
-    networks:
-      - app-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-networks:
-  app-network:
-    driver: bridge
+
