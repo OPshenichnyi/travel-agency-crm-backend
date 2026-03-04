@@ -7,7 +7,7 @@ services:
       dockerfile: docker/node/Dockerfile
     container_name: travel-agency-api
     ports:
-      - "3002:3002"
+      - "3002:3000"
     volumes:
       - ./logs:/app/logs
     environment:
